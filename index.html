@@ -9,9 +9,11 @@
             --bg-color: #121212;
             --card-bg: #1e1e1e;
             --accent: #ff5722; /* Zwift-ish Orange */
+            --accent-hover: #f4511e;
             --text-main: #ffffff;
             --text-muted: #aaaaaa;
             --success: #4caf50;
+            --border: #333;
         }
 
         * {
@@ -39,14 +41,10 @@
             align-items: center;
             margin-bottom: 30px;
             padding-bottom: 15px;
-            border-bottom: 1px solid #333;
+            border-bottom: 1px solid var(--border);
         }
 
-        h1 {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: var(--text-main);
-        }
+        h1 { font-size: 1.2rem; font-weight: 600; }
 
         .status-dot {
             height: 10px;
@@ -78,7 +76,6 @@
             border-radius: 12px;
             text-align: center;
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            transition: transform 0.2s;
         }
 
         .metric-value {
@@ -95,12 +92,11 @@
             letter-spacing: 1px;
         }
 
-        /* Specific Colors for metrics */
         .power-val { color: #ffca28; }
         .cadence-val { color: #42a5f5; }
         .speed-val { color: #66bb6a; }
 
-        /* Slope Control Section */
+        /* Control Panel */
         .control-panel {
             background-color: var(--card-bg);
             width: 100%;
@@ -109,6 +105,7 @@
             padding: 25px;
             text-align: center;
             box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            margin-bottom: 20px;
         }
 
         .control-label {
@@ -141,20 +138,116 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.1s ease;
             background-color: #333;
             color: white;
+            transition: transform 0.1s;
             -webkit-tap-highlight-color: transparent;
         }
-
-        .btn-circle:active {
-            transform: scale(0.95);
-        }
-
-        .btn-minus { background-color: #333; }
+        .btn-circle:active { transform: scale(0.95); }
         .btn-plus { background-color: var(--accent); }
 
-        /* Main Action Button */
+        /* Advanced Settings Details */
+        .advanced-details {
+            width: 100%;
+            max-width: 600px;
+            background: #181818;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .advanced-details summary {
+            padding: 15px;
+            cursor: pointer;
+            font-weight: 600;
+            user-select: none;
+            background: var(--card-bg);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .advanced-details summary::after {
+            content: '▼';
+            font-size: 0.8rem;
+            transition: transform 0.3s;
+        }
+
+        .advanced-details[open] summary::after {
+            transform: rotate(180deg);
+        }
+
+        .advanced-content {
+            padding: 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .setting-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .setting-group:last-child { margin-bottom: 0; }
+
+        .setting-label {
+            display: block;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .setting-desc {
+            display: block;
+            color: #666;
+            font-size: 0.75rem;
+            margin-bottom: 10px;
+            font-style: italic;
+        }
+
+        select, input[type="range"] {
+            width: 100%;
+            padding: 10px;
+            background: #2a2a2a;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        select:focus { border-color: var(--accent); }
+
+        /* Range Slider Styling */
+        input[type=range] {
+            -webkit-appearance: none; 
+            background: transparent; 
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            margin-top: -8px; 
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #444;
+            border-radius: 2px;
+        }
+
+        .range-value {
+            float: right;
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        /* Main Connect Button */
         .btn-main {
             background-color: var(--accent);
             color: white;
@@ -164,12 +257,11 @@
             font-weight: 600;
             border-radius: 30px;
             cursor: pointer;
-            margin-top: 30px;
             width: 100%;
             max-width: 300px;
-            transition: opacity 0.2s;
+            transition: background-color 0.2s;
         }
-
+        .btn-main:hover { background-color: var(--accent-hover); }
         .btn-main:disabled {
             background-color: #444;
             cursor: not-allowed;
@@ -177,19 +269,20 @@
         }
 
         #error-log {
-            color: #f44336;
+            color: #ff6b6b;
             margin-top: 20px;
             font-size: 0.8rem;
             text-align: left;
             max-width: 600px;
-            background: #1a1a1a;
+            background: #2c0b0b;
             padding: 10px;
             border-radius: 8px;
             font-family: monospace;
-            display: none; /* Hidden by default */
+            display: none;
+            width: 100%;
+            word-break: break-all;
         }
 
-        /* Responsive adjustments */
         @media (max-width: 400px) {
             .dashboard { grid-template-columns: 1fr; }
             .metric-value { font-size: 3rem; }
@@ -233,23 +326,71 @@
         <p style="color: #555; font-size: 0.8rem; margin-top: 10px;">Controls resistance to simulate hill steepness</p>
     </div>
 
+    <details class="advanced-details">
+        <summary>Advanced Physics Settings</summary>
+        <div class="advanced-content">
+            
+            <!-- Crr Setting -->
+            <div class="setting-group">
+                <label class="setting-label">Rolling Resistance (Crr)</label>
+                <span class="setting-desc">Simulates tire friction. Higher values = "sticky" tires (Linear difficulty).</span>
+                <select id="opt-crr">
+                    <option value="30">Wooden Track (0.003)</option>
+                    <option value="40">Smooth Concrete (0.004)</option>
+                    <option value="51" selected>Asphalt Road (0.0051) - Default</option>
+                    <option value="60">Rough Road (0.006)</option>
+                    <option value="80">Gravel / Dirt (0.008)</option>
+                </select>
+            </div>
+
+            <!-- Cw Setting -->
+            <div class="setting-group">
+                <label class="setting-label">Aerodynamics (Cw)</label>
+                <span class="setting-desc">Simulates wind drag. Higher values = more air resistance at high speeds (Exponential difficulty).</span>
+                <select id="opt-cw">
+                    <option value="35">Time Trial Bike (0.35)</option>
+                    <option value="40">Race Bike / Drops (0.40)</option>
+                    <option value="51" selected>Road Bike / Hoods (0.51) - Default</option>
+                    <option value="60">Endurance / Relaxed (0.60)</option>
+                    <option value="75">MTB / Upright (0.75)</option>
+                </select>
+            </div>
+
+            <!-- Wind Speed Setting -->
+            <div class="setting-group">
+                <label class="setting-label">
+                    Wind Speed <span class="range-value" id="lbl-wind">0 m/s</span>
+                </label>
+                <span class="setting-desc">Positive = Headwind (Harder). Negative = Tailwind (Easier).</span>
+                <input type="range" id="rng-wind" min="-10" max="10" step="0.5" value="0">
+            </div>
+
+        </div>
+    </details>
+
     <button class="btn-main" id="btn-connect">Connect Trainer</button>
     <div id="error-log"></div>
 
     <script>
-        // --- Constants for Bluetooth FTMS (Fitness Machine Service) ---
+        // --- Constants ---
         const FTMS_SERVICE_UUID = '00001826-0000-1000-8000-00805f9b34fb';
         const INDOOR_BIKE_DATA_UUID = '00002ad2-0000-1000-8000-00805f9b34fb';
         const CONTROL_POINT_UUID = '00002ad9-0000-1000-8000-00805f9b34fb';
 
-        // Opcodes
         const OP_REQUEST_CONTROL = 0x00;
         const OP_SET_SIMULATION_PARAMS = 0x11;
 
-        // --- State ---
+        // --- Global State ---
         let bluetoothDevice = null;
         let controlChar = null;
-        let currentSlope = 0.0;
+        
+        // Simulation Parameters
+        let simParams = {
+            grade: 0.0,   // %
+            crr: 51,      // 0.0051
+            cw: 51,       // 0.51
+            wind: 0       // m/s
+        };
 
         // --- UI Elements ---
         const els = {
@@ -262,10 +403,15 @@
             slope: document.getElementById('val-slope'),
             btnInc: document.getElementById('btn-increase'),
             btnDec: document.getElementById('btn-decrease'),
-            errorLog: document.getElementById('error-log')
+            errorLog: document.getElementById('error-log'),
+            // Advanced
+            optCrr: document.getElementById('opt-crr'),
+            optCw: document.getElementById('opt-cw'),
+            rngWind: document.getElementById('rng-wind'),
+            lblWind: document.getElementById('lbl-wind')
         };
 
-        // --- Helper: Logger ---
+        // --- Logging ---
         function log(msg, isError = false) {
             console.log(msg);
             if (isError) {
@@ -286,18 +432,15 @@
                 els.statusDot.classList.remove('status-connected');
                 els.connectBtn.innerText = "Connect Trainer";
                 els.connectBtn.style.backgroundColor = "";
-                els.errorLog.innerHTML = ''; 
+                els.errorLog.innerHTML = '';
                 els.errorLog.style.display = 'none';
-                
-                // Reset values
                 els.power.innerText = "--";
                 els.cadence.innerText = "--";
                 els.speed.innerText = "--";
             }
         }
 
-        // --- Bluetooth Logic ---
-
+        // --- Bluetooth Connection ---
         async function onConnectClick() {
             if (bluetoothDevice && bluetoothDevice.gatt.connected) {
                 bluetoothDevice.gatt.disconnect();
@@ -305,177 +448,175 @@
             }
 
             try {
-                log("Requesting Bluetooth Device...");
+                log("Scanning for FTMS devices...");
                 bluetoothDevice = await navigator.bluetooth.requestDevice({
                     filters: [{ services: [FTMS_SERVICE_UUID] }]
                 });
 
                 bluetoothDevice.addEventListener('gattserverdisconnected', onDisconnected);
 
-                log("Connecting to GATT Server...");
+                log("Connecting to GATT...");
                 const server = await bluetoothDevice.gatt.connect();
-
-                log("Getting FTMS Service...");
                 const service = await server.getPrimaryService(FTMS_SERVICE_UUID);
 
-                // 1. Setup Indoor Bike Data (Notifications)
-                log("Setting up Data Notifications...");
+                log("Subscribing to Data...");
                 const dataChar = await service.getCharacteristic(INDOOR_BIKE_DATA_UUID);
                 await dataChar.startNotifications();
                 dataChar.addEventListener('characteristicvaluechanged', handleBikeData);
 
-                // 2. Setup Control Point (Indications + Write)
                 log("Setting up Control Point...");
                 try {
                     controlChar = await service.getCharacteristic(CONTROL_POINT_UUID);
-                    
-                    // CRITICAL: Enable Indications before writing to Control Point
-                    await controlChar.startNotifications(); 
-                    log("Control Point indications enabled.");
-
+                    // Critical: Enable Indications for Control Point
+                    await controlChar.startNotifications();
                     await requestControl();
+                    
+                    // Send initial parameters
+                    await sendSimulationUpdate();
                 } catch (e) {
-                    log("Control Point Error: " + e.message, true);
+                    log("Control Point Setup Error: " + e.message, true);
                 }
 
                 updateStatus(true);
-                log("Ready!");
+                log("Ready to ride!");
 
             } catch (error) {
-                log("Connection failed: " + error, true);
+                log("Connection Error: " + error.message, true);
                 updateStatus(false);
             }
         }
 
         function onDisconnected() {
-            log("Device disconnected");
+            log("Disconnected");
             updateStatus(false);
             bluetoothDevice = null;
             controlChar = null;
         }
 
-        // --- Data Parsing (FTMS Indoor Bike Data) ---
+        // --- Data Parsing ---
         function handleBikeData(event) {
             const value = event.target.value;
             let index = 0;
-
-            // Flags: 16 bits
             const flags = value.getUint16(index, true);
             index += 2;
 
-            // Helper to check bit
             const isSet = (bit) => (flags & (1 << bit)) !== 0;
 
-            // FTMS Indoor Bike Data Structure
-            // Offset 0: Flags
-            // Offset 2: Instantaneous Speed (Mandatory - always present in packet 0)
-            // ... Optional fields follow
-
-            // 1. Speed (Mandatory field) - Uint16, 0.01 Km/h
-            // We read this unconditionally unless "More Data" logic suggests split packets, 
-            // but for basic trainers, Speed is always at byte 2.
+            // Speed (Mandatory usually)
             if (value.byteLength >= index + 2) {
                 const speedRaw = value.getUint16(index, true);
-                const speedKph = (speedRaw * 0.01).toFixed(1);
-                els.speed.innerText = speedKph;
+                els.speed.innerText = (speedRaw * 0.01).toFixed(1);
                 index += 2;
             }
 
-            // 2. Average Speed (Bit 1)
-            if (isSet(1)) { index += 2; }
+            if (isSet(1)) index += 2; // Avg Speed
 
-            // 3. Instantaneous Cadence (Bit 2) - Uint16, 0.5 RPM
+            // Cadence
             if (isSet(2)) {
-                 if (value.byteLength >= index + 2) {
-                    const cadenceRaw = value.getUint16(index, true);
-                    const cadenceRpm = Math.round(cadenceRaw * 0.5);
-                    els.cadence.innerText = cadenceRpm;
+                if (value.byteLength >= index + 2) {
+                    els.cadence.innerText = Math.round(value.getUint16(index, true) * 0.5);
                     index += 2;
-                 }
+                }
             }
 
-            // 4. Average Cadence (Bit 3)
-            if (isSet(3)) { index += 2; }
+            if (isSet(3)) index += 2; // Avg Cadence
+            if (isSet(4)) index += 3; // Distance
+            if (isSet(5)) index += 2; // Resistance Level
 
-            // 5. Total Distance (Bit 4) - Uint24 (3 bytes)
-            if (isSet(4)) { index += 3; }
-
-            // 6. Resistance Level (Bit 5) - SInt16
-            if (isSet(5)) { index += 2; }
-
-            // 7. Instantaneous Power (Bit 6) - SInt16, Watts
+            // Power
             if (isSet(6)) {
-                 if (value.byteLength >= index + 2) {
-                    const powerWatts = value.getInt16(index, true);
-                    els.power.innerText = powerWatts;
+                if (value.byteLength >= index + 2) {
+                    els.power.innerText = value.getInt16(index, true);
                     index += 2;
-                 }
+                }
             }
-
-            // Debug Flags if needed
-            // console.log(`Flags: ${flags.toString(2)}, Index: ${index}, Len: ${value.byteLength}`);
         }
 
         // --- Control Logic ---
-
         async function requestControl() {
             if (!controlChar) return;
-            log("Requesting control permission...");
-            // OpCode 0x00: Request Control
             const payload = new Uint8Array([OP_REQUEST_CONTROL]);
             await controlChar.writeValue(payload);
-            log("Control requested successfully.");
         }
 
-        async function setSlope(newSlope) {
-            if (!controlChar) {
-                log("Trainer not connected or Control Point unavailable.", true);
-                return;
-            }
+        async function sendSimulationUpdate() {
+            if (!controlChar) return;
 
-            currentSlope = parseFloat(newSlope.toFixed(1));
-            els.slope.innerText = (currentSlope > 0 ? "+" : "") + currentSlope.toFixed(1);
-
-            // FTMS Set Indoor Bike Simulation Parameters (OpCode 0x11)
-            // Structure: [OpCode(1), Wind(2), Grade(2), Crr(1), Cw(1)]
-            // Total 7 bytes
-            
+            // 7 Bytes: [OpCode, Wind(2), Grade(2), Crr(1), Cw(1)]
             const buffer = new ArrayBuffer(7);
             const view = new DataView(buffer);
 
-            view.setUint8(0, OP_SET_SIMULATION_PARAMS); // OpCode
-            view.setInt16(1, 0, true);       // Wind Speed (0 m/s)
-            view.setInt16(3, Math.round(currentSlope * 100), true); // Grade (0.01% units)
-            view.setUint8(5, 51);            // Crr (0.0051 approx standard)
-            view.setUint8(6, 51);            // Cw (0.51 kg/m)
+            // 1. OpCode
+            view.setUint8(0, OP_SET_SIMULATION_PARAMS); 
+            
+            // 2. Wind Speed (m/s * 1000)
+            // Input is m/s, e.g. 5.5. Send 5500.
+            view.setInt16(1, Math.round(simParams.wind * 1000), true);
+
+            // 3. Grade (% * 100)
+            // Input is %, e.g. 5.0. Send 500.
+            view.setInt16(3, Math.round(simParams.grade * 100), true);
+
+            // 4. Crr (Coefficient * 10000)
+            // Input is 51 (for 0.0051). Send 51.
+            view.setUint8(5, parseInt(simParams.crr));
+
+            // 5. Cw (kg/m * 100)
+            // Input is 51 (for 0.51). Send 51.
+            view.setUint8(6, parseInt(simParams.cw));
 
             try {
                 await controlChar.writeValue(buffer);
-                log(`Slope set to ${currentSlope}%`);
+                // Optional: Log infrequent updates
+                // log(`Sent: Grade:${simParams.grade}%, Wind:${simParams.wind}, Crr:${simParams.crr}, Cw:${simParams.cw}`);
             } catch (e) {
-                log("Failed to set slope: " + e.message, true);
+                log("Write failed: " + e.message, true);
             }
         }
 
-        // --- Event Listeners ---
+        // --- UI Event Handlers ---
 
+        // Grade Controls
+        function updateGrade(newGrade) {
+            // Clamp between -15% and +20% (Hardware limits usually around there)
+            if (newGrade > 20) newGrade = 20;
+            if (newGrade < -15) newGrade = -15;
+            
+            simParams.grade = parseFloat(newGrade.toFixed(1));
+            
+            // UI Update
+            els.slope.innerText = (simParams.grade > 0 ? "+" : "") + simParams.grade.toFixed(1);
+            
+            sendSimulationUpdate();
+        }
+
+        els.btnInc.addEventListener('click', () => updateGrade(simParams.grade + 0.5));
+        els.btnDec.addEventListener('click', () => updateGrade(simParams.grade - 0.5));
+
+        // Advanced Controls
+        els.optCrr.addEventListener('change', (e) => {
+            simParams.crr = e.target.value;
+            sendSimulationUpdate();
+        });
+
+        els.optCw.addEventListener('change', (e) => {
+            simParams.cw = e.target.value;
+            sendSimulationUpdate();
+        });
+
+        els.rngWind.addEventListener('input', (e) => {
+            simParams.wind = parseFloat(e.target.value);
+            els.lblWind.innerText = (simParams.wind > 0 ? "+" : "") + simParams.wind + " m/s";
+            sendSimulationUpdate();
+        });
+
+        // Re-attach the connect button listener
         els.connectBtn.addEventListener('click', onConnectClick);
 
-        els.btnInc.addEventListener('click', () => {
-            // Max 15% for most trainers
-            if (currentSlope < 15) setSlope(currentSlope + 0.5);
-        });
-
-        els.btnDec.addEventListener('click', () => {
-            // Min -10%
-            if (currentSlope > -10) setSlope(currentSlope - 0.5);
-        });
-
         // --- Init ---
-        // Check if Web Bluetooth is available
         if (!navigator.bluetooth) {
             els.errorLog.style.display = 'block';
-            els.errorLog.innerHTML = "Web Bluetooth is not supported in this browser.<br>Please use Chrome (Desktop/Android) or Bluefy (iOS).";
+            els.errorLog.innerHTML = "Web Bluetooth is not supported in this browser. Use Chrome/Edge/Bluefy.";
             els.connectBtn.disabled = true;
         }
 
