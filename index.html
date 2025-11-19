@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Trainer Controller</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --accent: #ff5722; /* Zwift-ish Orange */
+            --text-main: #ffffff;
+            --text-muted: #aaaaaa;
+            --success: #4caf50;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        header {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #333;
+        }
+
+        h1 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .status-dot {
+            height: 10px;
+            width: 10px;
+            background-color: #555;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+
+        .status-connected {
+            background-color: var(--success);
+            box-shadow: 0 0 8px var(--success);
+        }
+
+        /* Dashboard Grid */
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 30px;
+        }
+
+        .metric-card {
+            background-color: var(--card-bg);
+            padding: 20px 10px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            transition: transform 0.2s;
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .metric-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Specific Colors for metrics */
+        .power-val { color: #ffca28; }
+        .cadence-val { color: #42a5f5; }
+        .speed-val { color: #66bb6a; }
+
+        /* Slope Control Section */
+        .control-panel {
+            background-color: var(--card-bg);
+            width: 100%;
+            max-width: 600px;
+            border-radius: 16px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+        }
+
+        .control-label {
+            font-size: 1rem;
+            color: var(--text-muted);
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .slope-display {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .slope-value-container {
+            font-size: 3rem;
+            font-weight: 800;
+            width: 140px;
+        }
+
+        .btn-circle {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.1s ease;
+            background-color: #333;
+            color: white;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .btn-circle:active {
+            transform: scale(0.95);
+        }
+
+        .btn-minus { background-color: #333; }
+        .btn-plus { background-color: var(--accent); }
+
+        /* Main Action Button */
+        .btn-main {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 30px;
+            cursor: pointer;
+            margin-top: 30px;
+            width: 100%;
+            max-width: 300px;
+            transition: opacity 0.2s;
+        }
+
+        .btn-main:disabled {
+            background-color: #444;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        #error-log {
+            color: #f44336;
+            margin-top: 20px;
+            font-size: 0.8rem;
+            text-align: left;
+            max-width: 600px;
+            background: #1a1a1a;
+            padding: 10px;
+            border-radius: 8px;
+            font-family: monospace;
+            display: none; /* Hidden by default */
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 400px) {
+            .dashboard { grid-template-columns: 1fr; }
+            .metric-value { font-size: 3rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Trainer<span style="color:var(--accent)">Control</span></h1>
+        <div id="connection-status">
+            <span class="status-dot" id="status-dot"></span>
+            <span id="status-text">Disconnected</span>
+        </div>
+    </header>
+
+    <div class="dashboard">
+        <div class="metric-card">
+            <span class="metric-value power-val" id="val-power">--</span>
+            <span class="metric-label">Watts</span>
+        </div>
+        <div class="metric-card">
+            <span class="metric-value cadence-val" id="val-cadence">--</span>
+            <span class="metric-label">RPM</span>
+        </div>
+        <div class="metric-card">
+            <span class="metric-value speed-val" id="val-speed">--</span>
+            <span class="metric-label">KPH</span>
+        </div>
+    </div>
+
+    <div class="control-panel">
+        <span class="control-label">SIMULATED GRADE</span>
+        <div class="slope-display">
+            <button class="btn-circle btn-minus" id="btn-decrease">−</button>
+            <div class="slope-value-container">
+                <span id="val-slope">0.0</span>%
+            </div>
+            <button class="btn-circle btn-plus" id="btn-increase">+</button>
+        </div>
+        <p style="color: #555; font-size: 0.8rem; margin-top: 10px;">Controls resistance to simulate hill steepness</p>
+    </div>
+
+    <button class="btn-main" id="btn-connect">Connect Trainer</button>
+    <div id="error-log"></div>
+
+    <script>
+        // --- Constants for Bluetooth FTMS (Fitness Machine Service) ---
+        const FTMS_SERVICE_UUID = '00001826-0000-1000-8000-00805f9b34fb';
+        const INDOOR_BIKE_DATA_UUID = '00002ad2-0000-1000-8000-00805f9b34fb';
+        const CONTROL_POINT_UUID = '00002ad9-0000-1000-8000-00805f9b34fb';
+
+        // Opcodes
+        const OP_REQUEST_CONTROL = 0x00;
+        const OP_SET_SIMULATION_PARAMS = 0x11;
+
+        // --- State ---
+        let bluetoothDevice = null;
+        let controlChar = null;
+        let currentSlope = 0.0;
+
+        // --- UI Elements ---
+        const els = {
+            connectBtn: document.getElementById('btn-connect'),
+            statusText: document.getElementById('status-text'),
+            statusDot: document.getElementById('status-dot'),
+            power: document.getElementById('val-power'),
+            cadence: document.getElementById('val-cadence'),
+            speed: document.getElementById('val-speed'),
+            slope: document.getElementById('val-slope'),
+            btnInc: document.getElementById('btn-increase'),
+            btnDec: document.getElementById('btn-decrease'),
+            errorLog: document.getElementById('error-log')
+        };
+
+        // --- Helper: Logger ---
+        function log(msg, isError = false) {
+            console.log(msg);
+            if (isError) {
+                els.errorLog.style.display = 'block';
+                const time = new Date().toLocaleTimeString();
+                els.errorLog.innerHTML += `<div>[${time}] ${msg}</div>`;
+            }
+        }
+
+        function updateStatus(connected) {
+            if (connected) {
+                els.statusText.innerText = "Connected";
+                els.statusDot.classList.add('status-connected');
+                els.connectBtn.innerText = "Disconnect";
+                els.connectBtn.style.backgroundColor = "#333";
+            } else {
+                els.statusText.innerText = "Disconnected";
+                els.statusDot.classList.remove('status-connected');
+                els.connectBtn.innerText = "Connect Trainer";
+                els.connectBtn.style.backgroundColor = "";
+                els.errorLog.innerHTML = ''; 
+                els.errorLog.style.display = 'none';
+                
+                // Reset values
+                els.power.innerText = "--";
+                els.cadence.innerText = "--";
+                els.speed.innerText = "--";
+            }
+        }
+
+        // --- Bluetooth Logic ---
+
+        async function onConnectClick() {
+            if (bluetoothDevice && bluetoothDevice.gatt.connected) {
+                bluetoothDevice.gatt.disconnect();
+                return;
+            }
+
+            try {
+                log("Requesting Bluetooth Device...");
+                bluetoothDevice = await navigator.bluetooth.requestDevice({
+                    filters: [{ services: [FTMS_SERVICE_UUID] }]
+                });
+
+                bluetoothDevice.addEventListener('gattserverdisconnected', onDisconnected);
+
+                log("Connecting to GATT Server...");
+                const server = await bluetoothDevice.gatt.connect();
+
+                log("Getting FTMS Service...");
+                const service = await server.getPrimaryService(FTMS_SERVICE_UUID);
+
+                // 1. Setup Indoor Bike Data (Notifications)
+                log("Setting up Data Notifications...");
+                const dataChar = await service.getCharacteristic(INDOOR_BIKE_DATA_UUID);
+                await dataChar.startNotifications();
+                dataChar.addEventListener('characteristicvaluechanged', handleBikeData);
+
+                // 2. Setup Control Point (Indications + Write)
+                log("Setting up Control Point...");
+                try {
+                    controlChar = await service.getCharacteristic(CONTROL_POINT_UUID);
+                    
+                    // CRITICAL: Enable Indications before writing to Control Point
+                    await controlChar.startNotifications(); 
+                    log("Control Point indications enabled.");
+
+                    await requestControl();
+                } catch (e) {
+                    log("Control Point Error: " + e.message, true);
+                }
+
+                updateStatus(true);
+                log("Ready!");
+
+            } catch (error) {
+                log("Connection failed: " + error, true);
+                updateStatus(false);
+            }
+        }
+
+        function onDisconnected() {
+            log("Device disconnected");
+            updateStatus(false);
+            bluetoothDevice = null;
+            controlChar = null;
+        }
+
+        // --- Data Parsing (FTMS Indoor Bike Data) ---
+        function handleBikeData(event) {
+            const value = event.target.value;
+            let index = 0;
+
+            // Flags: 16 bits
+            const flags = value.getUint16(index, true);
+            index += 2;
+
+            // Helper to check bit
+            const isSet = (bit) => (flags & (1 << bit)) !== 0;
+
+            // FTMS Indoor Bike Data Structure
+            // Offset 0: Flags
+            // Offset 2: Instantaneous Speed (Mandatory - always present in packet 0)
+            // ... Optional fields follow
+
+            // 1. Speed (Mandatory field) - Uint16, 0.01 Km/h
+            // We read this unconditionally unless "More Data" logic suggests split packets, 
+            // but for basic trainers, Speed is always at byte 2.
+            if (value.byteLength >= index + 2) {
+                const speedRaw = value.getUint16(index, true);
+                const speedKph = (speedRaw * 0.01).toFixed(1);
+                els.speed.innerText = speedKph;
+                index += 2;
+            }
+
+            // 2. Average Speed (Bit 1)
+            if (isSet(1)) { index += 2; }
+
+            // 3. Instantaneous Cadence (Bit 2) - Uint16, 0.5 RPM
+            if (isSet(2)) {
+                 if (value.byteLength >= index + 2) {
+                    const cadenceRaw = value.getUint16(index, true);
+                    const cadenceRpm = Math.round(cadenceRaw * 0.5);
+                    els.cadence.innerText = cadenceRpm;
+                    index += 2;
+                 }
+            }
+
+            // 4. Average Cadence (Bit 3)
+            if (isSet(3)) { index += 2; }
+
+            // 5. Total Distance (Bit 4) - Uint24 (3 bytes)
+            if (isSet(4)) { index += 3; }
+
+            // 6. Resistance Level (Bit 5) - SInt16
+            if (isSet(5)) { index += 2; }
+
+            // 7. Instantaneous Power (Bit 6) - SInt16, Watts
+            if (isSet(6)) {
+                 if (value.byteLength >= index + 2) {
+                    const powerWatts = value.getInt16(index, true);
+                    els.power.innerText = powerWatts;
+                    index += 2;
+                 }
+            }
+
+            // Debug Flags if needed
+            // console.log(`Flags: ${flags.toString(2)}, Index: ${index}, Len: ${value.byteLength}`);
+        }
+
+        // --- Control Logic ---
+
+        async function requestControl() {
+            if (!controlChar) return;
+            log("Requesting control permission...");
+            // OpCode 0x00: Request Control
+            const payload = new Uint8Array([OP_REQUEST_CONTROL]);
+            await controlChar.writeValue(payload);
+            log("Control requested successfully.");
+        }
+
+        async function setSlope(newSlope) {
+            if (!controlChar) {
+                log("Trainer not connected or Control Point unavailable.", true);
+                return;
+            }
+
+            currentSlope = parseFloat(newSlope.toFixed(1));
+            els.slope.innerText = (currentSlope > 0 ? "+" : "") + currentSlope.toFixed(1);
+
+            // FTMS Set Indoor Bike Simulation Parameters (OpCode 0x11)
+            // Structure: [OpCode(1), Wind(2), Grade(2), Crr(1), Cw(1)]
+            // Total 7 bytes
+            
+            const buffer = new ArrayBuffer(7);
+            const view = new DataView(buffer);
+
+            view.setUint8(0, OP_SET_SIMULATION_PARAMS); // OpCode
+            view.setInt16(1, 0, true);       // Wind Speed (0 m/s)
+            view.setInt16(3, Math.round(currentSlope * 100), true); // Grade (0.01% units)
+            view.setUint8(5, 51);            // Crr (0.0051 approx standard)
+            view.setUint8(6, 51);            // Cw (0.51 kg/m)
+
+            try {
+                await controlChar.writeValue(buffer);
+                log(`Slope set to ${currentSlope}%`);
+            } catch (e) {
+                log("Failed to set slope: " + e.message, true);
+            }
+        }
+
+        // --- Event Listeners ---
+
+        els.connectBtn.addEventListener('click', onConnectClick);
+
+        els.btnInc.addEventListener('click', () => {
+            // Max 15% for most trainers
+            if (currentSlope < 15) setSlope(currentSlope + 0.5);
+        });
+
+        els.btnDec.addEventListener('click', () => {
+            // Min -10%
+            if (currentSlope > -10) setSlope(currentSlope - 0.5);
+        });
+
+        // --- Init ---
+        // Check if Web Bluetooth is available
+        if (!navigator.bluetooth) {
+            els.errorLog.style.display = 'block';
+            els.errorLog.innerHTML = "Web Bluetooth is not supported in this browser.<br>Please use Chrome (Desktop/Android) or Bluefy (iOS).";
+            els.connectBtn.disabled = true;
+        }
+
+    </script>
+</body>
+</html>
