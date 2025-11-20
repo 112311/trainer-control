@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart Trainer Controller</title>
-    <style>
+     <style>
         :root {
             --bg-color: #121212;
             --card-bg: #1e1e1e;
@@ -13,6 +13,7 @@
             --text-main: #ffffff;
             --text-muted: #aaaaaa;
             --success: #4caf50;
+            --erg-color: #9c27b0; /* Purple for ERG */
             --border: #333;
         }
 
@@ -96,6 +97,49 @@
         .cadence-val { color: #42a5f5; }
         .speed-val { color: #66bb6a; }
 
+        /* --- NEW: Mode Switcher Styles --- */
+        .mode-toggle-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 15px;
+            background: #1e1e1e;
+            padding: 5px;
+            border-radius: 30px;
+            border: 1px solid #333;
+            max-width: 350px;
+            width: 100%;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .mode-btn {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #aaa;
+            padding: 12px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .mode-btn.active {
+            color: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        /* Specific active colors */
+        #btn-mode-grade.active { background-color: #333; }
+        #btn-mode-erg.active { background-color: var(--erg-color); }
+
+        /* Inactive Section Styling */
+        .control-section.inactive {
+            opacity: 0.3;
+            pointer-events: none;
+            filter: grayscale(0.8);
+        }
+
         /* Control Panel */
         .control-panel {
             background-color: var(--card-bg);
@@ -108,32 +152,53 @@
             margin-bottom: 20px;
         }
 
-        .control-label {
-            font-size: 1rem;
-            color: var(--text-muted);
-            margin-bottom: 15px;
-            display: block;
+        .control-panel.grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
         }
 
-        .slope-display {
+        @media (min-width: 500px) {
+            .control-panel.grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .control-section {
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #333;
+            transition: border-color 0.3s, opacity 0.3s;
+        }
+        .control-section.grade { border-color: #4a4a4a; }
+        .control-section.erg { border-color: var(--erg-color); }
+
+        .control-label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            display: block;
+            font-weight: 500;
+        }
+
+        .display-container {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
         }
 
-        .slope-value-container {
-            font-size: 3rem;
+        .value-display {
+            font-size: 2.5rem;
             font-weight: 800;
-            width: 140px;
         }
 
         .btn-circle {
-            width: 70px;
-            height: 70px;
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
             border: none;
-            font-size: 2rem;
+            font-size: 1.8rem;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -145,6 +210,10 @@
         }
         .btn-circle:active { transform: scale(0.95); }
         .btn-plus { background-color: var(--accent); }
+
+        /* ERG Button Colors */
+        .btn-plus.erg { background-color: var(--erg-color); }
+        .btn-minus.erg { background-color: #7b1fa2; }
 
         /* Advanced Settings Details */
         .advanced-details {
@@ -314,16 +383,36 @@
         </div>
     </div>
 
-    <div class="control-panel">
-        <span class="control-label">SIMULATED GRADE</span>
-        <div class="slope-display">
-            <button class="btn-circle btn-minus" id="btn-decrease">−</button>
-            <div class="slope-value-container">
-                <span id="val-slope">0.0</span>%
+    <!-- Updated Control Panel to support Grid layout for Grade and ERG -->
+    <div class="control-panel grid">
+        <button id="btn-mode-grade" class="mode-btn active">Grade Mode</button>
+        <button id="btn-mode-erg" class="mode-btn">ERG Mode</button>
+        <!-- Grade Control Section -->
+        <div class="control-section grade">
+            <span class="control-label">SIMULATED GRADE</span>
+            <div class="display-container">
+                <button class="btn-circle btn-minus" id="btn-decrease">−</button>
+                <div class="value-display">
+                    <span id="val-slope">0.0</span><span style="font-size: 1rem;">%</span>
+                </div>
+                <button class="btn-circle btn-plus" id="btn-increase">+</button>
             </div>
-            <button class="btn-circle btn-plus" id="btn-increase">+</button>
+            <p style="color: #555; font-size: 0.8rem; margin-top: 10px;">Simulate hills</p>
         </div>
-        <p style="color: #555; font-size: 0.8rem; margin-top: 10px;">Controls resistance to simulate hill steepness</p>
+
+        <!-- ERG Control Section -->
+        <div class="control-section erg inactive">
+            <span class="control-label" style="color: var(--erg-color)">TARGET POWER (ERG)</span>
+            <div class="display-container">
+                <button class="btn-circle btn-minus erg" id="btn-erg-down">−</button>
+                <div class="value-display" style="color: var(--erg-color)">
+                    <span id="val-erg">150</span><span style="font-size: 1rem;">W</span>
+                </div>
+                <button class="btn-circle btn-plus erg" id="btn-erg-up">+</button>
+            </div>
+            <p style="color: #555; font-size: 0.8rem; margin-top: 10px;">ERG Mode — Set Target Power</p>
+        </div>
+
     </div>
 
     <details class="advanced-details">
@@ -340,12 +429,12 @@
                     <option value="2070">26" x 2.1" (2070 mm)</option>
 
                     <!-- 700c Road -->
-                    <option value="2096" selected>700c x 23mm (2096 mm)</option>
+                    <option value="2096">700c x 23mm (2096 mm)</option>
                     <option value="2136">700c x 28mm (2136 mm)</option>
                     <option value="2146">700c x 30mm (2146 mm)</option>
+                    <option value="2155" selected>700c x 32mm (2155 mm) - Default</option>
 
                     <!-- 700c Cyclocross / Gravel -->
-                    <option value="2155" selected>700c x 32mm (2155 mm) - Default</option>
                     <option value="2168">700c x 35mm Gravel (2168 mm)</option>
                     <option value="2200">700c x 40mm Gravel (2200 mm)</option>
                     <option value="2215">700c x 45mm Gravel (2215 mm)</option>
@@ -412,6 +501,7 @@
         const CONTROL_POINT_UUID = '00002ad9-0000-1000-8000-00805f9b34fb';
 
         const OP_REQUEST_CONTROL = 0x00;
+        const OP_SET_TARGET_POWER = 0x05; // ERG Mode
         const OP_SET_SIMULATION_PARAMS = 0x11;
         const OP_SET_CIRCUMFERENCE = 0x12; // OpCode for Set Wheel Circumference
 
@@ -428,6 +518,8 @@
             circumference: 2155 // mm (2.096 meters * 1000)
         };
 
+        let targetErgWatts = 150; // Initial ERG Target
+
         // --- UI Elements ---
         const els = {
             connectBtn: document.getElementById('btn-connect'),
@@ -436,9 +528,20 @@
             power: document.getElementById('val-power'),
             cadence: document.getElementById('val-cadence'),
             speed: document.getElementById('val-speed'),
+            // Grade
             slope: document.getElementById('val-slope'),
             btnInc: document.getElementById('btn-increase'),
             btnDec: document.getElementById('btn-decrease'),
+            // ERG
+            ergDisplay: document.getElementById('val-erg'),
+            btnErgUp: document.getElementById('btn-erg-up'),
+            btnErgDown: document.getElementById('btn-erg-down'),
+            // Modes
+            btnModeGrade: document.getElementById('btn-mode-grade'),
+            btnModeErg: document.getElementById('btn-mode-erg'),
+            sectionGrade: document.querySelector('.control-section.grade'),
+            sectionErg: document.querySelector('.control-section.erg'),
+
             errorLog: document.getElementById('error-log'),
             // Advanced
             optCircumference: document.getElementById('opt-circumference'),
@@ -633,11 +736,81 @@
             }
         }
 
+        // --- ERG Mode (Target Power) ---
+        async function sendTargetPowerUpdate(watts) {
+            if (!controlChar) return;
+
+            // Safety clamp (0 to 2000W)
+            watts = Math.max(0, Math.min(2000, watts));
+
+            // 3 Bytes: [OpCode, Power (2)]
+            const buffer = new ArrayBuffer(3);
+            const view = new DataView(buffer);
+
+            view.setUint8(0, OP_SET_TARGET_POWER);
+            view.setUint16(1, watts, true); // Watts (UINT16, LSB first)
+
+            try {
+                await controlChar.writeValue(buffer);
+                log(`Trainer Mode: ERG. Target: ${watts}W (OpCode 0x05)`);
+                targetErgWatts = watts;
+                els.ergDisplay.innerText = targetErgWatts;
+            } catch (e) {
+                log("Target Power Write failed: " + e.message, true);
+            }
+        }
+
+        function ergUp() {
+            if (!checkConnected()) return;
+            sendTargetPowerUpdate(targetErgWatts + 5);
+        }
+
+        function ergDown() {
+            if (!checkConnected()) return;
+            sendTargetPowerUpdate(targetErgWatts - 5);
+        }
+
+        function checkConnected() {
+            if (!bluetoothDevice || !bluetoothDevice.gatt.connected) {
+                log("Connect trainer first.", true);
+                return false;
+            }
+            return true;
+        }
 
         // --- UI Event Handlers ---
 
+        // Mode Switching Logic
+        function setMode(mode) {
+            if (mode === 'grade') {
+                els.btnModeGrade.classList.add('active');
+                els.btnModeErg.classList.remove('active');
+
+                els.sectionGrade.classList.remove('inactive');
+                els.sectionErg.classList.add('inactive');
+
+                if (bluetoothDevice && bluetoothDevice.gatt.connected) {
+                    sendSimulationUpdate(); // Force switch to Sim Mode
+                }
+            } else {
+                els.btnModeGrade.classList.remove('active');
+                els.btnModeErg.classList.add('active');
+
+                els.sectionGrade.classList.add('inactive');
+                els.sectionErg.classList.remove('inactive');
+
+                if (bluetoothDevice && bluetoothDevice.gatt.connected) {
+                    sendTargetPowerUpdate(targetErgWatts); // Force switch to ERG Mode
+                }
+            }
+        }
+
+        els.btnModeGrade.addEventListener('click', () => setMode('grade'));
+        els.btnModeErg.addEventListener('click', () => setMode('erg'));
+
         // Grade Controls
         function updateGrade(newGrade) {
+            if (!checkConnected()) return;
             // Clamp between -15% and +20% (Hardware limits usually around there)
             if (newGrade > 20) newGrade = 20;
             if (newGrade < -15) newGrade = -15;
@@ -647,11 +820,25 @@
             // UI Update
             els.slope.innerText = (simParams.grade > 0 ? "+" : "") + simParams.grade.toFixed(1);
 
-            sendSimulationUpdate();
+            // Ensure we stay in/switch to Grade mode
+            setMode('grade');
+            // setMode calls sendSimulationUpdate internally if connected, but redundant call is safe:
+            // sendSimulationUpdate();
         }
 
         els.btnInc.addEventListener('click', () => updateGrade(simParams.grade + 0.5));
         els.btnDec.addEventListener('click', () => updateGrade(simParams.grade - 0.5));
+
+        // ERG Controls
+        els.btnErgUp.addEventListener('click', () => {
+            targetErgWatts += 5;
+            if (checkConnected()) sendTargetPowerUpdate(targetErgWatts);
+        });
+
+        els.btnErgDown.addEventListener('click', () => {
+            targetErgWatts -= 5;
+            if (checkConnected()) sendTargetPowerUpdate(targetErgWatts);
+        });
 
         // Circumference Control
         els.optCircumference.addEventListener('change', (e) => {
@@ -662,18 +849,18 @@
         // Advanced Controls
         els.optCrr.addEventListener('change', (e) => {
             simParams.crr = e.target.value;
-            sendSimulationUpdate();
+            if (els.btnModeGrade.classList.contains('active')) sendSimulationUpdate();
         });
 
         els.optCw.addEventListener('change', (e) => {
             simParams.cw = e.target.value;
-            sendSimulationUpdate();
+            if (els.btnModeGrade.classList.contains('active')) sendSimulationUpdate();
         });
 
         els.rngWind.addEventListener('input', (e) => {
             simParams.wind = parseFloat(e.target.value);
             els.lblWind.innerText = (simParams.wind > 0 ? "+" : "") + simParams.wind + " m/s";
-            sendSimulationUpdate();
+            if (els.btnModeGrade.classList.contains('active')) sendSimulationUpdate();
         });
 
         // Re-attach the connect button listener
@@ -682,6 +869,7 @@
         // --- Init ---
         // Initialize circumference dropdown value
         els.optCircumference.value = simParams.circumference;
+        els.ergDisplay.innerText = targetErgWatts;
 
         if (!navigator.bluetooth) {
             els.errorLog.style.display = 'block';
