@@ -571,13 +571,24 @@
         const debouncedSendTargetPowerUpdate = debounce(sendTargetPowerUpdate, 250);
 
         // --- Logging ---
+        let errorMessages = [];
         function log(msg, isError = false) {
             console.log(msg);
-            if (isError) {
-                els.errorLog.style.display = 'block';
-                const time = new Date().toLocaleTimeString();
-                els.errorLog.innerHTML += `<div>[${time}] ${msg}</div>`;
+
+            els.errorLog.style.display = 'block';
+            if (!navigator.bluetooth) {
+                els.errorLog.innerHTML = "Web Bluetooth is not supported in this browser. Use Chrome/Edge/Bluefy.";
+                els.connectBtn.disabled = true;
+                return;
             }
+
+            const time = new Date().toLocaleTimeString();
+            const entry = `<div>[${time}] ${msg}</div>`;
+            // Preserve any "unsupported" banner stored in dataset, but limit runtime errors to last 5
+            const unsupportedHtml = els.errorLog.dataset.unsupportedHtml || '';
+            errorMessages.push(entry);
+            if (errorMessages.length > 5) errorMessages.shift();
+            els.errorLog.innerHTML = unsupportedHtml + errorMessages.join('');
         }
 
         function updateStatus(connected) {
