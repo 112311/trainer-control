@@ -551,6 +551,25 @@
             lblWind: document.getElementById('lbl-wind')
         };
 
+        // --- Utility ---
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // --- Debounced Control Logic ---
+        // Create debounced wrappers for the send functions.
+        // This prevents "GATT operation already in progress" errors on rapid UI interaction.
+        const debouncedSendSimulationUpdate = debounce(sendSimulationUpdate, 250);
+        const debouncedSendTargetPowerUpdate = debounce(sendTargetPowerUpdate, 250);
+
         // --- Logging ---
         function log(msg, isError = false) {
             console.log(msg);
@@ -753,21 +772,13 @@
             try {
                 await controlChar.writeValue(buffer);
                 log(`Trainer Mode: ERG. Target: ${watts}W (OpCode 0x05)`);
+                // On success, commit the new power value to our global state.
                 targetErgWatts = watts;
-                els.ergDisplay.innerText = targetErgWatts;
             } catch (e) {
                 log("Target Power Write failed: " + e.message, true);
+                // On failure, revert the UI to the last known good value.
+                els.ergDisplay.innerText = targetErgWatts;
             }
-        }
-
-        function ergUp() {
-            if (!checkConnected()) return;
-            sendTargetPowerUpdate(targetErgWatts + 5);
-        }
-
-        function ergDown() {
-            if (!checkConnected()) return;
-            sendTargetPowerUpdate(targetErgWatts - 5);
         }
 
         function checkConnected() {
@@ -789,8 +800,8 @@
                 els.sectionGrade.classList.remove('inactive');
                 els.sectionErg.classList.add('inactive');
 
-                if (bluetoothDevice && bluetoothDevice.gatt.connected) {
-                    sendSimulationUpdate(); // Force switch to Sim Mode
+                if (checkConnected()) {
+                    debouncedSendSimulationUpdate(); // Force switch to Sim Mode
                 }
             } else {
                 els.btnModeGrade.classList.remove('active');
@@ -799,8 +810,8 @@
                 els.sectionGrade.classList.add('inactive');
                 els.sectionErg.classList.remove('inactive');
 
-                if (bluetoothDevice && bluetoothDevice.gatt.connected) {
-                    sendTargetPowerUpdate(targetErgWatts); // Force switch to ERG Mode
+                if (checkConnected()) {
+                    debouncedSendTargetPowerUpdate(targetErgWatts); // Force switch to ERG Mode
                 }
             }
         }
@@ -831,13 +842,21 @@
 
         // ERG Controls
         els.btnErgUp.addEventListener('click', () => {
-            targetErgWatts += 5;
-            if (checkConnected()) sendTargetPowerUpdate(targetErgWatts);
+            if (!checkConnected()) return;
+            // Read from the UI, not the state variable, for immediate feedback on rapid clicks
+            let currentWatts = parseInt(els.ergDisplay.innerText) || targetErgWatts;
+            const newWatts = currentWatts + 5;
+            els.ergDisplay.innerText = newWatts; // Optimistically update UI immediately
+            debouncedSendTargetPowerUpdate(newWatts);
         });
 
         els.btnErgDown.addEventListener('click', () => {
-            targetErgWatts -= 5;
-            if (checkConnected()) sendTargetPowerUpdate(targetErgWatts);
+            if (!checkConnected()) return;
+            // Read from the UI for the same reason
+            let currentWatts = parseInt(els.ergDisplay.innerText) || targetErgWatts;
+            const newWatts = currentWatts - 5;
+            els.ergDisplay.innerText = newWatts; // Optimistically update UI immediately
+            debouncedSendTargetPowerUpdate(newWatts);
         });
 
         // Circumference Control
@@ -849,18 +868,18 @@
         // Advanced Controls
         els.optCrr.addEventListener('change', (e) => {
             simParams.crr = e.target.value;
-            if (els.btnModeGrade.classList.contains('active')) sendSimulationUpdate();
+            if (els.btnModeGrade.classList.contains('active')) debouncedSendSimulationUpdate();
         });
 
         els.optCw.addEventListener('change', (e) => {
             simParams.cw = e.target.value;
-            if (els.btnModeGrade.classList.contains('active')) sendSimulationUpdate();
+            if (els.btnModeGrade.classList.contains('active')) debouncedSendSimulationUpdate();
         });
 
         els.rngWind.addEventListener('input', (e) => {
             simParams.wind = parseFloat(e.target.value);
             els.lblWind.innerText = (simParams.wind > 0 ? "+" : "") + simParams.wind + " m/s";
-            if (els.btnModeGrade.classList.contains('active')) sendSimulationUpdate();
+            if (els.btnModeGrade.classList.contains('active')) debouncedSendSimulationUpdate();
         });
 
         // Re-attach the connect button listener
