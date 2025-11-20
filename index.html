@@ -842,33 +842,24 @@
             // UI Update
             els.slope.innerText = (simParams.grade > 0 ? "+" : "") + simParams.grade.toFixed(1);
 
-            // Ensure we stay in/switch to Grade mode
             setMode('grade');
-            // setMode calls sendSimulationUpdate internally if connected, but redundant call is safe:
-            // sendSimulationUpdate();
+        }
+
+        function updateErg(change) {
+            if (!checkConnected()) return;
+            // Read from the UI, not the state variable, for immediate feedback on rapid clicks
+            let currentWatts = parseInt(els.ergDisplay.innerText) || targetErgWatts;
+            const newWatts = currentWatts + change;
+            els.ergDisplay.innerText = newWatts; // Optimistically update UI immediately
+            debouncedSendTargetPowerUpdate(newWatts);
         }
 
         els.btnInc.addEventListener('click', () => updateGrade(simParams.grade + 0.5));
         els.btnDec.addEventListener('click', () => updateGrade(simParams.grade - 0.5));
 
         // ERG Controls
-        els.btnErgUp.addEventListener('click', () => {
-            if (!checkConnected()) return;
-            // Read from the UI, not the state variable, for immediate feedback on rapid clicks
-            let currentWatts = parseInt(els.ergDisplay.innerText) || targetErgWatts;
-            const newWatts = currentWatts + 5;
-            els.ergDisplay.innerText = newWatts; // Optimistically update UI immediately
-            debouncedSendTargetPowerUpdate(newWatts);
-        });
-
-        els.btnErgDown.addEventListener('click', () => {
-            if (!checkConnected()) return;
-            // Read from the UI for the same reason
-            let currentWatts = parseInt(els.ergDisplay.innerText) || targetErgWatts;
-            const newWatts = currentWatts - 5;
-            els.ergDisplay.innerText = newWatts; // Optimistically update UI immediately
-            debouncedSendTargetPowerUpdate(newWatts);
-        });
+        els.btnErgUp.addEventListener('click', () => updateErg(5));
+        els.btnErgDown.addEventListener('click', () => updateErg(-5));
 
         // Circumference Control
         els.optCircumference.addEventListener('change', (e) => {
@@ -895,6 +886,52 @@
 
         // Re-attach the connect button listener
         els.connectBtn.addEventListener('click', onConnectClick);
+
+        // --- Keyboard Shortcuts ---
+        document.addEventListener('keydown', (e) => {
+            // Don't interfere if user is typing in an input
+            if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'SELECT') {
+                return;
+            }
+
+            const isGradeMode = els.btnModeGrade.classList.contains('active');
+            let handled = false;
+
+            switch (e.key) {
+                case 'Add':
+                case '+':
+                    isGradeMode ? updateGrade(simParams.grade + 0.1) : updateErg(5);
+                    handled = true;
+                    break;
+                case 'Subtract':
+                case '-':
+                    isGradeMode ? updateGrade(simParams.grade - 0.1) : updateErg(-5);
+                    handled = true;
+                    break;
+                case 'ArrowUp':
+                    isGradeMode ? updateGrade(simParams.grade + 0.5) : updateErg(10);
+                    handled = true;
+                    break;
+                case 'ArrowDown':
+                    isGradeMode ? updateGrade(simParams.grade - 0.5) : updateErg(-10);
+                    handled = true;
+                    break;
+                case 'e':
+                case 'E':
+                    setMode('erg');
+                    handled = true;
+                    break;
+                case 'g':
+                case 'G':
+                    setMode('grade');
+                    handled = true;
+                    break;
+            }
+
+            if (handled) {
+                e.preventDefault(); // Prevent page scrolling with arrow keys
+            }
+        });
 
         // --- Init ---
         // Initialize circumference dropdown value
