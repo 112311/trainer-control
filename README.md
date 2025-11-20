@@ -10,6 +10,7 @@ A lightweight, modern web application to control any FTMS-compatible smart train
 
   * **Live Dashboard:** Real-time display of **Power (Watts)**, **Cadence (RPM)**, and **Speed (KPH)**.
   * **Manual Grade Control:** Adjust slope/incline on the fly with large `+` / `-` buttons to simulate hills.
+  * **Wheel Circumference Setting:** Select wheel circumference (in millimeters) to improve speed calculations and compatibility with trainers that report/expect wheel size.
   * **Advanced Physics Engine:** Customize the simulation parameters to match your riding style:
       * **Rolling Resistance (Crr):** Simulate different road surfaces (Track, Asphalt, Gravel).
       * **Aerodynamics (Cw):** Adjust for your riding position (TT, Hoods, Upright/MTB).
@@ -54,8 +55,10 @@ Simply visit **[112311.github.io/trainer-control/](https://112311.github.io/trai
 
 ## ⚙️ Advanced Physics Explained
 
-The app allows you to tweak the **"Set Indoor Bike Simulation Parameters"** (FTMS OpCode `0x11`).
+The app allows you to tweak the **"Set Indoor Bike Simulation Parameters"** (FTMS OpCode `0x11`) and now includes a dedicated wheel circumference setting (FTMS OpCode `0x12`).
 
+  * **Wheel Circumference:** Set the wheel circumference in millimeters (mm) to improve speed/reporting accuracy. The app sends the value using the FTMS "Set Wheel Circumference" command (note: FTMS encodes circumference in 0.1 mm units).
+      * *Default:* 2155 mm (700c x 32mm)
   * **Rolling Resistance (Crr):** Adds linear resistance. Higher values feel like "sticky tires" or rough roads.
       * *Default:* 0.0051 (Standard Asphalt).
   * **Aerodynamics (Cw):** Adds exponential resistance based on speed. Higher values feel like hitting a "wall" of air at high speeds.

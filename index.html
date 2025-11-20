@@ -221,8 +221,8 @@
 
         /* Range Slider Styling */
         input[type=range] {
-            -webkit-appearance: none; 
-            background: transparent; 
+            -webkit-appearance: none;
+            background: transparent;
         }
         input[type=range]::-webkit-slider-thumb {
             -webkit-appearance: none;
@@ -231,7 +231,7 @@
             border-radius: 50%;
             background: var(--accent);
             cursor: pointer;
-            margin-top: -8px; 
+            margin-top: -8px;
         }
         input[type=range]::-webkit-slider-runnable-track {
             width: 100%;
@@ -329,7 +329,41 @@
     <details class="advanced-details">
         <summary>Advanced Physics Settings</summary>
         <div class="advanced-content">
-            
+
+            <!-- Wheel Circumference Setting (New Feature) -->
+            <div class="setting-group">
+                <label class="setting-label">Wheel Circumference</label>
+                <span class="setting-desc">Sets the circumference in millimeters (mm) for speed calculation.</span>
+                <select id="opt-circumference">
+                    <!-- 26" MTB -->
+                    <option value="2050">26" x 1.95" (2050 mm)</option>
+                    <option value="2070">26" x 2.1" (2070 mm)</option>
+
+                    <!-- 700c Road -->
+                    <option value="2096" selected>700c x 23mm (2096 mm)</option>
+                    <option value="2136">700c x 28mm (2136 mm)</option>
+                    <option value="2146">700c x 30mm (2146 mm)</option>
+
+                    <!-- 700c Cyclocross / Gravel -->
+                    <option value="2155" selected>700c x 32mm (2155 mm) - Default</option>
+                    <option value="2168">700c x 35mm Gravel (2168 mm)</option>
+                    <option value="2200">700c x 40mm Gravel (2200 mm)</option>
+                    <option value="2215">700c x 45mm Gravel (2215 mm)</option>
+
+                    <!-- 27.5" MTB -->
+                    <option value="2182">27.5" x 2.1" (2182 mm)</option>
+                    <option value="2240">27.5" x 2.25" (2240 mm)</option>
+
+                    <!-- 29" MTB -->
+                    <option value="2300">29" x 2.2" (2300 mm)</option>
+                    <option value="2330">29" x 2.5" (2330 mm)</option>
+
+                    <!-- Small chainring SPEEEEEEED -->
+                    <option value="3500">BIG Wheel (3500 mm) - For small chainring speed</option>
+                    <option value="3900">Huge Wheel (3900 mm) - For small chainring speed</option>
+                </select>
+            </div>
+
             <!-- Crr Setting -->
             <div class="setting-group">
                 <label class="setting-label">Rolling Resistance (Crr)</label>
@@ -379,17 +413,19 @@
 
         const OP_REQUEST_CONTROL = 0x00;
         const OP_SET_SIMULATION_PARAMS = 0x11;
+        const OP_SET_CIRCUMFERENCE = 0x12; // OpCode for Set Wheel Circumference
 
         // --- Global State ---
         let bluetoothDevice = null;
         let controlChar = null;
-        
+
         // Simulation Parameters
         let simParams = {
             grade: 0.0,   // %
             crr: 51,      // 0.0051
             cw: 51,       // 0.51
-            wind: 0       // m/s
+            wind: 0,      // m/s
+            circumference: 2155 // mm (2.096 meters * 1000)
         };
 
         // --- UI Elements ---
@@ -405,6 +441,7 @@
             btnDec: document.getElementById('btn-decrease'),
             errorLog: document.getElementById('error-log'),
             // Advanced
+            optCircumference: document.getElementById('opt-circumference'),
             optCrr: document.getElementById('opt-crr'),
             optCw: document.getElementById('opt-cw'),
             rngWind: document.getElementById('rng-wind'),
@@ -469,10 +506,17 @@
                     controlChar = await service.getCharacteristic(CONTROL_POINT_UUID);
                     // Critical: Enable Indications for Control Point
                     await controlChar.startNotifications();
+
+                    log("Requesting control (OpCode 0x00)...");
                     await requestControl();
-                    
-                    // Send initial parameters
+
+                    // --- IMPORTANT: ADD A DELAY TO ALLOW TRAINER TO TRANSITION TO 'IN USE' STATE ---
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    log("Control requested. Sending configuration parameters...");
+
+                    // Send initial parameters and circumference
                     await sendSimulationUpdate();
+                    await sendCircumferenceUpdate();
                 } catch (e) {
                     log("Control Point Setup Error: " + e.message, true);
                 }
@@ -546,33 +590,49 @@
             const buffer = new ArrayBuffer(7);
             const view = new DataView(buffer);
 
-            // 1. OpCode
-            view.setUint8(0, OP_SET_SIMULATION_PARAMS); 
-            
+            // 1. OpCode (0x11)
+            view.setUint8(0, OP_SET_SIMULATION_PARAMS);
+
             // 2. Wind Speed (m/s * 1000)
-            // Input is m/s, e.g. 5.5. Send 5500.
             view.setInt16(1, Math.round(simParams.wind * 1000), true);
 
             // 3. Grade (% * 100)
-            // Input is %, e.g. 5.0. Send 500.
             view.setInt16(3, Math.round(simParams.grade * 100), true);
 
             // 4. Crr (Coefficient * 10000)
-            // Input is 51 (for 0.0051). Send 51.
             view.setUint8(5, parseInt(simParams.crr));
 
             // 5. Cw (kg/m * 100)
-            // Input is 51 (for 0.51). Send 51.
             view.setUint8(6, parseInt(simParams.cw));
 
             try {
                 await controlChar.writeValue(buffer);
-                // Optional: Log infrequent updates
-                // log(`Sent: Grade:${simParams.grade}%, Wind:${simParams.wind}, Crr:${simParams.crr}, Cw:${simParams.cw}`);
+                log(`Sent: Grade:${simParams.grade}%, Wind:${simParams.wind}, Crr:${simParams.crr}, Cw:${simParams.cw}`);
             } catch (e) {
-                log("Write failed: " + e.message, true);
+                log("Simulation Write failed: " + e.message, true);
             }
         }
+
+        async function sendCircumferenceUpdate() {
+            if (!controlChar) return;
+
+            const mm = simParams.circumference;
+            const encoded = mm * 10; // because FTMS is in 0.1 mm units
+
+            const buffer = new ArrayBuffer(3);
+            const view = new DataView(buffer);
+
+            view.setUint8(0, OP_SET_CIRCUMFERENCE);
+            view.setUint16(1, encoded, true);
+
+            try {
+                await controlChar.writeValue(buffer);
+                log(`Sent FTMS Wheel Circumference: ${mm} mm (encoded ${encoded})`);
+            } catch (e) {
+                log("Circumference Write failed: " + e.message, true);
+            }
+        }
+
 
         // --- UI Event Handlers ---
 
@@ -581,17 +641,23 @@
             // Clamp between -15% and +20% (Hardware limits usually around there)
             if (newGrade > 20) newGrade = 20;
             if (newGrade < -15) newGrade = -15;
-            
+
             simParams.grade = parseFloat(newGrade.toFixed(1));
-            
+
             // UI Update
             els.slope.innerText = (simParams.grade > 0 ? "+" : "") + simParams.grade.toFixed(1);
-            
+
             sendSimulationUpdate();
         }
 
         els.btnInc.addEventListener('click', () => updateGrade(simParams.grade + 0.5));
         els.btnDec.addEventListener('click', () => updateGrade(simParams.grade - 0.5));
+
+        // Circumference Control
+        els.optCircumference.addEventListener('change', (e) => {
+            simParams.circumference = parseInt(e.target.value);
+            sendCircumferenceUpdate();
+        });
 
         // Advanced Controls
         els.optCrr.addEventListener('change', (e) => {
@@ -614,6 +680,9 @@
         els.connectBtn.addEventListener('click', onConnectClick);
 
         // --- Init ---
+        // Initialize circumference dropdown value
+        els.optCircumference.value = simParams.circumference;
+
         if (!navigator.bluetooth) {
             els.errorLog.style.display = 'block';
             els.errorLog.innerHTML = "Web Bluetooth is not supported in this browser. Use Chrome/Edge/Bluefy.";
