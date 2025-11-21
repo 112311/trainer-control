@@ -6,6 +6,9 @@ A lightweight, modern web application to control any FTMS-compatible smart train
 
 **No subscriptions, no accounts, no heavy 3D graphics.** Just you, your bike, and total control over the resistance.
 
+> [!NOTE]
+> This app is for **controlling** your trainer's resistance only. It does **not** record or save your workout. You should connect your trainer and power meter to a bike computer (Garmin, Wahoo, etc.) or another app simultaneously to record your activity.
+
 ## 🚀 Features
 
   * **Live Dashboard:** Real-time display of **Power (Watts)**, **Cadence (RPM)**, and **Speed (KPH)**.
