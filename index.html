@@ -8,13 +8,15 @@
         :root {
             --bg-color: #121212;
             --card-bg: #1e1e1e;
-            --accent: #ff5722; /* Zwift-ish Orange */
+            --accent: #ff5722;
             --accent-hover: #f4511e;
             --text-main: #ffffff;
             --text-muted: #aaaaaa;
             --success: #4caf50;
-            --erg-color: #9c27b0; /* Purple for ERG */
+            --erg-color: #9c27b0;
+            --workout-color: #e91e63;
             --border: #333;
+            --active-toggle: #00bcd4;
         }
 
         * {
@@ -97,7 +99,7 @@
         .cadence-val { color: #42a5f5; }
         .speed-val { color: #66bb6a; }
 
-        /* --- NEW: Mode Switcher Styles --- */
+        /* --- Mode Switcher --- */
         .mode-toggle-container {
             display: flex;
             justify-content: center;
@@ -129,15 +131,13 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
 
-        /* Specific active colors */
         #btn-mode-grade.active { background-color: #333; }
         #btn-mode-erg.active { background-color: var(--erg-color); }
+        #btn-mode-workout.active { background-color: var(--workout-color); }
 
         /* Inactive Section Styling */
         .control-section.inactive {
-            opacity: 0.3;
-            pointer-events: none;
-            filter: grayscale(0.8);
+            display: none;
         }
 
         /* Control Panel */
@@ -154,24 +154,21 @@
 
         .control-panel.grid {
             display: grid;
-            grid-template-columns: 1fr;
-            gap: 15px;
-        }
-
-        @media (min-width: 500px) {
-            .control-panel.grid {
-                grid-template-columns: 1fr 1fr;
-            }
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
         }
 
         .control-section {
             padding: 15px;
             border-radius: 10px;
             border: 1px solid #333;
-            transition: border-color 0.3s, opacity 0.3s;
+            animation: fadeIn 0.3s ease-in-out;
         }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
         .control-section.grade { border-color: #4a4a4a; }
         .control-section.erg { border-color: var(--erg-color); }
+        .control-section.workout { border-color: var(--workout-color); }
 
         .control-label {
             font-size: 0.9rem;
@@ -206,155 +203,141 @@
             background-color: #333;
             color: white;
             transition: transform 0.1s;
-            -webkit-tap-highlight-color: transparent;
         }
         .btn-circle:active { transform: scale(0.95); }
         .btn-plus { background-color: var(--accent); }
-
-        /* ERG Button Colors */
         .btn-plus.erg { background-color: var(--erg-color); }
         .btn-minus.erg { background-color: #7b1fa2; }
+        /* Mini Grade Buttons for Freeride */
+        .btn-mini { width: 40px; height: 40px; font-size: 1.2rem; background: #444; }
 
-        /* Advanced Settings Details */
-        .advanced-details {
-            width: 100%;
-            max-width: 600px;
-            background: #181818;
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            margin-bottom: 30px;
-            overflow: hidden;
+        .dynamic-controls {
+            margin-top: 15px;
+            border-top: 1px solid #333;
+            padding-top: 10px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
         }
 
-        .advanced-details summary {
-            padding: 15px;
+        .toggle-btn {
+            background: #2a2a2a;
+            border: 1px solid #444;
+            color: #888;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.75rem;
             cursor: pointer;
-            font-weight: 600;
-            user-select: none;
-            background: var(--card-bg);
+            flex: 1;
+            transition: all 0.2s;
+        }
+
+        .toggle-btn.active {
+            background: rgba(0, 188, 212, 0.2);
+            color: var(--active-toggle);
+            border-color: var(--active-toggle);
+        }
+
+        .toggle-btn.gusting {
+            transition: all 0.1s ease-in-out;
+            border-color: var(--accent);
+            box-shadow: 0 0 8px var(--accent);
+            transform: scale(1.02);
+        }
+
+        /* Workout Specifics */
+        .file-input-wrapper { margin-bottom: 15px; text-align: left; }
+        input[type="file"] {
+            width: 100%; background: #2a2a2a; color: #ccc;
+            padding: 10px; border-radius: 8px; border: 1px solid #444; font-size: 0.8rem;
+        }
+
+        #workout-graph {
+            width: 100%;
+            height: 100px;
+            background: #252525;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .workout-stats {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-        }
-
-        .advanced-details summary::after {
-            content: '▼';
-            font-size: 0.8rem;
-            transition: transform 0.3s;
-        }
-
-        .advanced-details[open] summary::after {
-            transform: rotate(180deg);
-        }
-
-        .advanced-content {
-            padding: 20px;
-            border-top: 1px solid var(--border);
-        }
-
-        .setting-group {
-            margin-bottom: 20px;
-            text-align: left;
-        }
-
-        .setting-group:last-child { margin-bottom: 0; }
-
-        .setting-label {
-            display: block;
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            margin-bottom: 8px;
-            font-weight: 500;
-        }
-
-        .setting-desc {
-            display: block;
-            color: #666;
-            font-size: 0.75rem;
-            margin-bottom: 10px;
-            font-style: italic;
-        }
-
-        select, input[type="range"] {
-            width: 100%;
+            margin-bottom: 15px;
+            background: #252525;
             padding: 10px;
-            background: #2a2a2a;
-            border: 1px solid var(--border);
             border-radius: 8px;
-            color: white;
-            font-size: 1rem;
-            outline: none;
         }
+        .w-stat { font-size: 0.8rem; color: #aaa; }
+        .w-val { display: block; font-size: 1.2rem; font-weight: bold; color: white; }
 
-        select:focus { border-color: var(--accent); }
-
-        /* Range Slider Styling */
-        input[type=range] {
-            -webkit-appearance: none;
-            background: transparent;
-        }
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            height: 20px;
-            width: 20px;
-            border-radius: 50%;
-            background: var(--accent);
-            cursor: pointer;
-            margin-top: -8px;
-        }
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%;
-            height: 4px;
-            cursor: pointer;
-            background: #444;
-            border-radius: 2px;
-        }
-
-        .range-value {
-            float: right;
-            color: var(--accent);
-            font-weight: bold;
-        }
-
-        /* Main Connect Button */
-        .btn-main {
-            background-color: var(--accent);
-            color: white;
+        .workout-controls { display: flex; gap: 8px; margin-top: 15px; }
+        .btn-w {
+            flex: 1;
             border: none;
-            padding: 15px 30px;
-            font-size: 1rem;
+            padding: 12px 5px;
+            border-radius: 8px;
+            font-size: 0.8rem;
             font-weight: 600;
-            border-radius: 30px;
             cursor: pointer;
-            width: 100%;
-            max-width: 300px;
-            transition: background-color 0.2s;
+            transition: transform 0.15s ease, box-shadow 0.2s ease;
+            text-transform: uppercase;
+        }
+        .btn-w:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+         .btn-w:active {
+            transform: translateY(0) scale(0.97);
+            box-shadow: none;
+        }
+        .btn-start { background: var(--success); color: white; }
+        .btn-stop { background: #d32f2f; color: white; }
+        .btn-pause { background: #fbc02d; color: black; }
+        .btn-skip { background: #616161; color: white; }
+
+        .freeride-ctrl {
+            display: none; /* Hidden by default, shown during Freeride segments */
+            background: #333;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            animation: fadeIn 0.5s;
+        }
+
+        /* Advanced Settings */
+        .advanced-details {
+            width: 100%; max-width: 600px; background: #181818; border: 1px solid var(--border);
+            border-radius: 12px; margin-bottom: 30px; overflow: hidden;
+        }
+        .advanced-details summary {
+            padding: 15px; cursor: pointer; font-weight: 600; user-select: none;
+            background: var(--card-bg); display: flex; justify-content: space-between; align-items: center;
+        }
+        .advanced-details summary::after { content: '▼'; font-size: 0.8rem; }
+        .advanced-details[open] summary::after { transform: rotate(180deg); }
+        .advanced-content { padding: 20px; border-top: 1px solid var(--border); }
+
+        .setting-group { margin-bottom: 20px; text-align: left; }
+        .setting-label { display: block; color: var(--text-muted); font-size: 0.9rem; margin-bottom: 8px; font-weight: 500; }
+
+        select, input[type="range"], input[type="number"] {
+            width: 100%; padding: 10px; background: #2a2a2a; border: 1px solid var(--border);
+            border-radius: 8px; color: white; font-size: 1rem; outline: none;
+        }
+
+        .btn-main {
+            background-color: var(--accent); color: white; border: none; padding: 15px 30px;
+            font-size: 1rem; font-weight: 600; border-radius: 30px; cursor: pointer;
+            width: 100%; max-width: 300px; transition: background-color 0.2s;
         }
         .btn-main:hover { background-color: var(--accent-hover); }
-        .btn-main:disabled {
-            background-color: #444;
-            cursor: not-allowed;
-            opacity: 0.7;
-        }
+        .btn-main:disabled { background-color: #444; opacity: 0.7; }
 
         #error-log {
-            color: #ff6b6b;
-            margin-top: 20px;
-            font-size: 0.8rem;
-            text-align: left;
-            max-width: 600px;
-            background: #2c0b0b;
-            padding: 10px;
-            border-radius: 8px;
-            font-family: monospace;
-            display: none;
-            width: 100%;
-            word-break: break-all;
-        }
-
-        @media (max-width: 400px) {
-            .dashboard { grid-template-columns: 1fr; }
-            .metric-value { font-size: 3rem; }
+            color: #ff6b6b; margin-top: 20px; font-size: 0.8rem; text-align: left;
+            max-width: 600px; background: #2c0b0b; padding: 10px; border-radius: 8px;
+            font-family: monospace; display: none; width: 100%; word-break: break-all;
         }
     </style>
 </head>
@@ -383,12 +366,14 @@
         </div>
     </div>
 
-    <!-- Updated Control Panel to support Grid layout for Grade and ERG -->
     <div class="control-panel grid">
         <button id="btn-mode-grade" class="mode-btn active">Grade Mode</button>
         <button id="btn-mode-erg" class="mode-btn">ERG Mode</button>
-        <!-- Grade Control Section -->
-        <div class="control-section grade">
+        <button id="btn-mode-workout" class="mode-btn">Workout</button>
+    </div>
+
+    <div class="control-panel control-section grade">
+        <div>
             <span class="control-label">SIMULATED GRADE</span>
             <div class="display-container">
                 <button class="btn-circle btn-minus" id="btn-decrease">−</button>
@@ -397,11 +382,15 @@
                 </div>
                 <button class="btn-circle btn-plus" id="btn-increase">+</button>
             </div>
-            <p style="color: #555; font-size: 0.8rem; margin-top: 10px;">Simulate hills</p>
         </div>
+        <div class="dynamic-controls">
+            <button id="btn-toggle-gusts" class="toggle-btn">💨 Wind Gusts <span id="gust-kmh" style="margin-left:8px; font-weight:700;color:#fff;">0 km/h</span></button>
+            <button id="btn-toggle-hills" class="toggle-btn">⛰️ Rolling Hills</button>
+        </div>
+    </div>
 
-        <!-- ERG Control Section -->
-        <div class="control-section erg inactive">
+    <div class="control-panel control-section erg inactive">
+        <div>
             <span class="control-label" style="color: var(--erg-color)">TARGET POWER (ERG)</span>
             <div class="display-container">
                 <button class="btn-circle btn-minus erg" id="btn-erg-down">−</button>
@@ -410,84 +399,143 @@
                 </div>
                 <button class="btn-circle btn-plus erg" id="btn-erg-up">+</button>
             </div>
-            <p style="color: #555; font-size: 0.8rem; margin-top: 10px;">ERG Mode — Set Target Power</p>
+        </div>
+        <p style="color: #555; font-size: 0.8rem; margin-top: 10px;">ERG Mode — Set Target Power</p>
+    </div>
+
+    <div class="control-panel control-section workout inactive">
+        <div class="file-input-wrapper">
+            <span class="control-label" style="color: var(--workout-color)">LOAD WORKOUT (.ZWO)</span>
+            <input type="file" id="file-zwo" accept=".zwo" />
         </div>
 
+        <div class="setting-group" style="margin-bottom: 10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <label style="font-size:0.8rem; color:#aaa;">Your FTP (Watts)</label>
+                <input type="number" id="inp-ftp" value="200" style="width: 80px; padding:5px; text-align:center;">
+            </div>
+        </div>
+
+        <hr style="border-color:#333; margin: 10px 0;">
+
+        <canvas id="workout-graph" width="600" height="150"></canvas>
+
+        <div id="workout-ui" style="opacity: 0.5; pointer-events: none;">
+
+            <div id="freeride-ui" class="freeride-ctrl">
+                <span class="control-label" style="color:white; margin-bottom:5px;">FREERIDE - GRADE CONTROL</span>
+                <div style="display:flex; justify-content:center; align-items:center; gap:20px;">
+                     <button class="btn-circle btn-mini" id="btn-fr-dec">−</button>
+                     <span style="font-size:1.5rem; font-weight:bold;"><span id="val-fr-grade">0.0</span>%</span>
+                     <button class="btn-circle btn-mini btn-plus" id="btn-fr-inc">+</button>
+                </div>
+            </div>
+
+            <div class="display-container" style="justify-content: center;">
+                <div class="value-display" style="color: var(--workout-color)">
+                    <span id="val-workout-target">--</span>
+                </div>
+            </div>
+            <p id="lbl-segment-type" style="color: #aaa; font-size: 0.9rem; margin-bottom: 10px;">No workout loaded</p>
+
+            <div class="workout-stats">
+                <div>
+                    <span class="w-stat">Time Left</span>
+                    <span class="w-val" id="val-seg-time">0:00</span>
+                </div>
+                <div>
+                    <span class="w-stat">Interval</span>
+                    <span class="w-val" id="val-seg-count">--/--</span>
+                </div>
+            </div>
+
+            <div class="setting-group" style="margin: 10px 0; text-align: center;">
+                <div style="display:flex; justify-content:center; align-items:center; gap:20px;">
+                     <button class="btn-circle btn-mini" id="btn-w-int-down">−</button>
+                     <div>
+                        <span class="w-val" id="val-w-intensity" style="font-size: 1.5rem;">100%</span>
+                        <span class="w-stat">INTENSITY</span>
+                     </div>
+                     <button class="btn-circle btn-mini btn-plus" id="btn-w-int-up">+</button>
+                </div>
+            </div>
+
+            <div class="workout-controls">
+                <button class="btn-w btn-skip" id="btn-w-prev">« Prev</button>
+                <button class="btn-w btn-start" id="btn-w-start">Start</button>
+                <button class="btn-w btn-pause" id="btn-w-pause">Pause</button>
+                <button class="btn-w btn-stop" id="btn-w-stop">Reset</button>
+                <button class="btn-w btn-skip" id="btn-w-next">Next »</button>
+            </div>
+        </div>
     </div>
 
     <details class="advanced-details">
-        <summary>Advanced Physics Settings</summary>
+        <summary>Advanced Settings</summary>
         <div class="advanced-content">
-
-            <!-- Wheel Circumference Setting (New Feature) -->
             <div class="setting-group">
-                <label class="setting-label">Wheel Circumference</label>
-                <span class="setting-desc">Sets the circumference in millimeters (mm) for speed calculation.</span>
-                <select id="opt-circumference">
-                    <!-- 26" MTB -->
-                    <option value="2050">26" x 1.95" (2050 mm)</option>
-                    <option value="2070">26" x 2.1" (2070 mm)</option>
-
-                    <!-- 700c Road -->
-                    <option value="2096">700c x 23mm (2096 mm)</option>
-                    <option value="2136">700c x 28mm (2136 mm)</option>
-                    <option value="2146">700c x 30mm (2146 mm)</option>
-                    <option value="2155" selected>700c x 32mm (2155 mm) - Default</option>
-
-                    <!-- 700c Cyclocross / Gravel -->
-                    <option value="2168">700c x 35mm Gravel (2168 mm)</option>
-                    <option value="2200">700c x 40mm Gravel (2200 mm)</option>
-                    <option value="2215">700c x 45mm Gravel (2215 mm)</option>
-
-                    <!-- 27.5" MTB -->
-                    <option value="2182">27.5" x 2.1" (2182 mm)</option>
-                    <option value="2240">27.5" x 2.25" (2240 mm)</option>
-
-                    <!-- 29" MTB -->
-                    <option value="2300">29" x 2.2" (2300 mm)</option>
-                    <option value="2330">29" x 2.5" (2330 mm)</option>
-
-                    <!-- Small chainring SPEEEEEEED -->
-                    <option value="3500">BIG Wheel (3500 mm) - For small chainring speed</option>
-                    <option value="3900">Huge Wheel (3900 mm) - For small chainring speed</option>
-                </select>
-            </div>
-
-            <!-- Crr Setting -->
-            <div class="setting-group">
+                <div class="setting-group">
+                    <label class="setting-label">Sim Update Rate (Seconds)</label>
+                    <input type="number" id="opt-update-rate" value="2.0" step="0.5" min="0.5" max="10">
+                </div>
+                <div class="setting-group">
+                    <label class="setting-label">"Rolling Hills" Limits (%)</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="number" id="opt-min-grade" value="-4" step="1" placeholder="Min">
+                        <input type="number" id="opt-max-grade" value="10" step="1" placeholder="Max">
+                    </div>
+                </div>
+                <div class="setting-group">
+                    <label class="setting-label">Wind Limits (km/h)</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="number" id="opt-min-wind" value="-18" step="1" placeholder="Min">
+                        <input type="number" id="opt-max-wind" value="43" step="1" placeholder="Max">
+                    </div>
+                </div>
+                <div class="setting-group">
+                    <label class="setting-label">Base Wind Speed (km/h)</label>
+                    <span class="range-value" id="lbl-wind">0 km/h</span>
+                    <input type="range" id="rng-wind" min="-40" max="40" step="1" value="0">
+                </div>
+                <div class="setting-group">
+                    <label class="setting-label">Wheel Circumference</label>
+                    <select id="opt-circumference">
+                        <option value="2050">26" x 1.95" (2050 mm)</option>
+                        <option value="2070">26" x 2.1" (2070 mm)</option>
+                        <option value="2096">700c x 23mm (2096 mm)</option>
+                        <option value="2136">700c x 28mm (2136 mm)</option>
+                        <option value="2146">700c x 30mm (2146 mm)</option>
+                        <option value="2155" selected>700c x 32mm (2155 mm) - Default</option>
+                        <option value="2168">700c x 35mm Gravel (2168 mm)</option>
+                        <option value="2200">700c x 40mm Gravel (2200 mm)</option>
+                        <option value="2215">700c x 45mm Gravel (2215 mm)</option>
+                        <option value="2182">27.5" x 2.1" (2182 mm)</option>
+                        <option value="2240">27.5" x 2.25" (2240 mm)</option>
+                        <option value="2300">29" x 2.2" (2300 mm)</option>
+                        <option value="2330">29" x 2.5" (2330 mm)</option>
+                        <option value="3500">BIG Wheel (3500 mm) - For small chainring speed</option>
+                        <option value="3900">Huge Wheel (3900 mm) - For small chainring speed</option>
+                    </select>
+                </div>
                 <label class="setting-label">Rolling Resistance (Crr)</label>
-                <span class="setting-desc">Simulates tire friction. Higher values = "sticky" tires (Linear difficulty).</span>
                 <select id="opt-crr">
                     <option value="30">Wooden Track (0.003)</option>
                     <option value="40">Smooth Concrete (0.004)</option>
-                    <option value="51" selected>Asphalt Road (0.0051) - Default</option>
+                    <option value="51" selected>Asphalt Road (0.0051)</option>
                     <option value="60">Rough Road (0.006)</option>
                     <option value="80">Gravel / Dirt (0.008)</option>
                 </select>
             </div>
-
-            <!-- Cw Setting -->
             <div class="setting-group">
                 <label class="setting-label">Aerodynamics (Cw)</label>
-                <span class="setting-desc">Simulates wind drag. Higher values = more air resistance at high speeds (Exponential difficulty).</span>
                 <select id="opt-cw">
-                    <option value="35">Time Trial Bike (0.35)</option>
-                    <option value="40">Race Bike / Drops (0.40)</option>
-                    <option value="51" selected>Road Bike / Hoods (0.51) - Default</option>
-                    <option value="60">Endurance / Relaxed (0.60)</option>
-                    <option value="75">MTB / Upright (0.75)</option>
+                    <option value="35">Time Trial (0.35)</option>
+                    <option value="40">Race/Drops (0.40)</option>
+                    <option value="51" selected>Road/Hoods (0.51)</option>
+                    <option value="60">Endurance (0.60)</option>
+                    <option value="75">MTB (0.75)</option>
                 </select>
             </div>
-
-            <!-- Wind Speed Setting -->
-            <div class="setting-group">
-                <label class="setting-label">
-                    Wind Speed <span class="range-value" id="lbl-wind">0 m/s</span>
-                </label>
-                <span class="setting-desc">Positive = Headwind (Harder). Negative = Tailwind (Easier).</span>
-                <input type="range" id="rng-wind" min="-10" max="10" step="0.5" value="0">
-            </div>
-
         </div>
     </details>
 
@@ -501,24 +549,36 @@
         const CONTROL_POINT_UUID = '00002ad9-0000-1000-8000-00805f9b34fb';
 
         const OP_REQUEST_CONTROL = 0x00;
-        const OP_SET_TARGET_POWER = 0x05; // ERG Mode
+        const OP_SET_TARGET_POWER = 0x05;
         const OP_SET_SIMULATION_PARAMS = 0x11;
-        const OP_SET_CIRCUMFERENCE = 0x12; // OpCode for Set Wheel Circumference
+        const OP_SET_CIRCUMFERENCE = 0x12;
+
+        const KPH_PER_MS = 3.6;
 
         // --- Global State ---
         let bluetoothDevice = null;
         let controlChar = null;
 
-        // Simulation Parameters
-        let simParams = {
-            grade: 0.0,   // %
-            crr: 51,      // 0.0051
-            cw: 51,       // 0.51
-            wind: 0,      // m/s
-            circumference: 2155 // mm (2.096 meters * 1000)
+        // Sim State
+        let simParams = { grade: 0.0, crr: 51, cw: 51, wind: 0, circumference: 2155 };
+        let dynamicState = {
+            gustsEnabled: false, hillsEnabled: false, currentSimWind: 0,
+            gustTarget: 0, gradeMin: -4, gradeMax: 10, windMin: -5, windMax: 12, updateRateMs: 2000
         };
+        let dynamicInterval = null;
 
-        let targetErgWatts = 150; // Initial ERG Target
+        // Workout State
+        let workoutState = {
+            active: false,
+            segments: [],
+            currentSegIndex: 0,
+            segTimeLeft: 0,
+            running: false,
+            ftp: 200,
+            timerId: null,
+            intensity: 1.0
+        };
+        let targetErgWatts = 150;
 
         // --- UI Elements ---
         const els = {
@@ -528,47 +588,109 @@
             power: document.getElementById('val-power'),
             cadence: document.getElementById('val-cadence'),
             speed: document.getElementById('val-speed'),
+
+            // Sections
+            btnModeGrade: document.getElementById('btn-mode-grade'),
+            btnModeErg: document.getElementById('btn-mode-erg'),
+            btnModeWorkout: document.getElementById('btn-mode-workout'),
+            secGrade: document.querySelector('.control-section.grade'),
+            secErg: document.querySelector('.control-section.erg'),
+            secWorkout: document.querySelector('.control-section.workout'),
+
             // Grade
             slope: document.getElementById('val-slope'),
             btnInc: document.getElementById('btn-increase'),
             btnDec: document.getElementById('btn-decrease'),
+            btnToggleGusts: document.getElementById('btn-toggle-gusts'),
+            btnToggleHills: document.getElementById('btn-toggle-hills'),
+
             // ERG
             ergDisplay: document.getElementById('val-erg'),
             btnErgUp: document.getElementById('btn-erg-up'),
             btnErgDown: document.getElementById('btn-erg-down'),
-            // Modes
-            btnModeGrade: document.getElementById('btn-mode-grade'),
-            btnModeErg: document.getElementById('btn-mode-erg'),
-            sectionGrade: document.querySelector('.control-section.grade'),
-            sectionErg: document.querySelector('.control-section.erg'),
 
-            errorLog: document.getElementById('error-log'),
+            // Workout
+            fileZwo: document.getElementById('file-zwo'),
+            inpFtp: document.getElementById('inp-ftp'),
+            workoutUi: document.getElementById('workout-ui'),
+            valWorkoutTarget: document.getElementById('val-workout-target'),
+            lblSegType: document.getElementById('lbl-segment-type'),
+            valSegTime: document.getElementById('val-seg-time'),
+            valSegCount: document.getElementById('val-seg-count'),
+            btnWStart: document.getElementById('btn-w-start'),
+            btnWPause: document.getElementById('btn-w-pause'),
+            btnWStop: document.getElementById('btn-w-stop'),
+            btnWPrev: document.getElementById('btn-w-prev'),
+            btnWNext: document.getElementById('btn-w-next'),
+            // Graph
+            canvas: document.getElementById('workout-graph'),
+            // Freeride
+            freerideUi: document.getElementById('freeride-ui'),
+            valFrGrade: document.getElementById('val-fr-grade'),
+            btnFrInc: document.getElementById('btn-fr-inc'),
+            btnFrDec: document.getElementById('btn-fr-dec'),
+
+            // Workout Intensity
+            valWIntensity: document.getElementById('val-w-intensity'),
+            btnWIntUp: document.getElementById('btn-w-int-up'),
+            btnWIntDown: document.getElementById('btn-w-int-down'),
+
             // Advanced
+            errorLog: document.getElementById('error-log'),
             optCircumference: document.getElementById('opt-circumference'),
             optCrr: document.getElementById('opt-crr'),
             optCw: document.getElementById('opt-cw'),
             rngWind: document.getElementById('rng-wind'),
-            lblWind: document.getElementById('lbl-wind')
+            lblWind: document.getElementById('lbl-wind'),
+            optUpdateRate: document.getElementById('opt-update-rate'),
+            optMinGrade: document.getElementById('opt-min-grade'),
+            optMaxGrade: document.getElementById('opt-max-grade'),
+            optMinWind: document.getElementById('opt-min-wind'),
+            optMaxWind: document.getElementById('opt-max-wind')
         };
+
+        const ctx = els.canvas.getContext('2d');
 
         // --- Utility ---
         function debounce(func, wait) {
             let timeout;
-            return function executedFunction(...args) {
-                const later = () => {
-                    clearTimeout(timeout);
-                    func(...args);
-                };
+            return function(...args) {
                 clearTimeout(timeout);
-                timeout = setTimeout(later, wait);
+                timeout = setTimeout(() => func(...args), wait);
             };
         }
+        const debouncedSendSim = debounce(sendSimulationUpdate, 250);
+        const debouncedSendErg = debounce(sendTargetPowerUpdate, 250);
+        function formatTime(sec) {
+            const m = Math.floor(sec / 60);
+            const s = sec % 60;
+            return `${m}:${s < 10 ? '0' : ''}${s}`;
+        }
 
-        // --- Debounced Control Logic ---
-        // Create debounced wrappers for the send functions.
-        // This prevents "GATT operation already in progress" errors on rapid UI interaction.
-        const debouncedSendSimulationUpdate = debounce(sendSimulationUpdate, 250);
-        const debouncedSendTargetPowerUpdate = debounce(sendTargetPowerUpdate, 250);
+        function getZoneColor(p) { // p is power as a fraction of FTP (e.g., 1.0 for 100%)
+            if (p < 0.60) return '#9E9E9E'; // Z1 Active Recovery (Grey)
+            if (p < 0.76) return '#42a5f5'; // Z2 Endurance (Blue')
+            if (p < 0.90) return '#66bb6a'; // Z3 Tempo (Green)
+            if (p < 1.05) return '#ffca28'; // Z4 Threshold (Yellow)
+            if (p < 1.19) return '#fb8c00'; // Z5 VO2 Max (Orange)
+            return '#e53935';              // Z6 Anaerobic+ (Red)
+        }
+
+        // helper: update the gust label in the wind-gust button (show km/h)
+        function refreshGustLabel() {
+            const el = document.getElementById('gust-kmh');
+            if (!el) return;
+            // prefer an active gust target when gusting, otherwise show base wind
+            let speedMs = simParams.wind;
+            if (dynamicState.gustsEnabled && Math.abs(dynamicState.gustTarget || 0) > 0.01) {
+                speedMs = dynamicState.gustTarget;
+            } else if (Math.abs(dynamicState.currentSimWind || 0) > Math.abs(simParams.wind)) {
+                // if currentSimWind is higher due to an active gust, show it
+                speedMs = dynamicState.currentSimWind;
+            }
+            const kmh = Math.round(speedMs * KPH_PER_MS);
+            el.innerText = `${kmh} km/h`;
+        }
 
         // --- Logging ---
         let errorMessages = [];
@@ -597,160 +719,164 @@
                 els.statusDot.classList.add('status-connected');
                 els.connectBtn.innerText = "Disconnect";
                 els.connectBtn.style.backgroundColor = "#333";
+                if (!dynamicInterval) startDynamicLoop();
             } else {
                 els.statusText.innerText = "Disconnected";
                 els.statusDot.classList.remove('status-connected');
                 els.connectBtn.innerText = "Connect Trainer";
                 els.connectBtn.style.backgroundColor = "";
-                els.errorLog.innerHTML = '';
-                els.errorLog.style.display = 'none';
-                els.power.innerText = "--";
-                els.cadence.innerText = "--";
-                els.speed.innerText = "--";
+                if (dynamicInterval) clearInterval(dynamicInterval);
+                if (workoutState.timerId) clearInterval(workoutState.timerId);
             }
         }
 
-        // --- Bluetooth Connection ---
+        // --- Bluetooth Logic ---
         async function onConnectClick() {
             if (bluetoothDevice && bluetoothDevice.gatt.connected) {
                 bluetoothDevice.gatt.disconnect();
                 return;
             }
-
             try {
-                log("Scanning for FTMS devices...");
-                bluetoothDevice = await navigator.bluetooth.requestDevice({
-                    filters: [{ services: [FTMS_SERVICE_UUID] }]
-                });
-
+                bluetoothDevice = await navigator.bluetooth.requestDevice({ filters: [{ services: [FTMS_SERVICE_UUID] }] });
                 bluetoothDevice.addEventListener('gattserverdisconnected', onDisconnected);
-
-                log("Connecting to GATT...");
                 const server = await bluetoothDevice.gatt.connect();
                 const service = await server.getPrimaryService(FTMS_SERVICE_UUID);
 
-                log("Subscribing to Data...");
                 const dataChar = await service.getCharacteristic(INDOOR_BIKE_DATA_UUID);
                 await dataChar.startNotifications();
                 dataChar.addEventListener('characteristicvaluechanged', handleBikeData);
 
-                log("Setting up Control Point...");
                 try {
                     controlChar = await service.getCharacteristic(CONTROL_POINT_UUID);
-                    // Critical: Enable Indications for Control Point
                     await controlChar.startNotifications();
-
-                    log("Requesting control (OpCode 0x00)...");
                     await requestControl();
-
-                    // --- IMPORTANT: ADD A DELAY TO ALLOW TRAINER TO TRANSITION TO 'IN USE' STATE ---
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                    log("Control requested. Sending configuration parameters...");
-
-                    // Send initial parameters and circumference
+                    await new Promise(r => setTimeout(r, 500));
                     await sendSimulationUpdate();
                     await sendCircumferenceUpdate();
-                } catch (e) {
-                    log("Control Point Setup Error: " + e.message, true);
-                }
+                } catch(e) { log("Control Error: " + e.message, true); }
 
                 updateStatus(true);
                 log("Ready to ride!");
-
-            } catch (error) {
-                log("Connection Error: " + error.message, true);
-                updateStatus(false);
-            }
+            } catch (error) { log("Conn Error: " + error.message, true); updateStatus(false); }
         }
 
-        function onDisconnected() {
-            log("Disconnected");
-            updateStatus(false);
-            bluetoothDevice = null;
-            controlChar = null;
-        }
+        function onDisconnected() { updateStatus(false); bluetoothDevice = null; controlChar = null; }
 
-        // --- Data Parsing ---
         function handleBikeData(event) {
-            const value = event.target.value;
-            let index = 0;
-            const flags = value.getUint16(index, true);
-            index += 2;
+            const val = event.target.value;
+            let idx = 0;
+            const flags = val.getUint16(idx, true); idx += 2;
+            const isSet = (b) => (flags & (1 << b)) !== 0;
 
-            const isSet = (bit) => (flags & (1 << bit)) !== 0;
-
-            // Speed (Mandatory usually)
-            if (value.byteLength >= index + 2) {
-                const speedRaw = value.getUint16(index, true);
-                els.speed.innerText = (speedRaw * 0.01).toFixed(1);
-                index += 2;
+            if (val.byteLength >= idx + 2) {
+                els.speed.innerText = (val.getUint16(idx, true) * 0.01).toFixed(1); idx += 2;
             }
-
-            if (isSet(1)) index += 2; // Avg Speed
-
-            // Cadence
-            if (isSet(2)) {
-                if (value.byteLength >= index + 2) {
-                    els.cadence.innerText = Math.round(value.getUint16(index, true) * 0.5);
-                    index += 2;
-                }
+            if (isSet(1)) idx += 2;
+            if (isSet(2) && val.byteLength >= idx + 2) {
+                els.cadence.innerText = Math.round(val.getUint16(idx, true) * 0.5); idx += 2;
             }
-
-            if (isSet(3)) index += 2; // Avg Cadence
-            if (isSet(4)) index += 3; // Distance
-            if (isSet(5)) index += 2; // Resistance Level
-
-            // Power
-            if (isSet(6)) {
-                if (value.byteLength >= index + 2) {
-                    els.power.innerText = value.getInt16(index, true);
-                    index += 2;
-                }
+            if (isSet(3)) idx += 2; if (isSet(4)) idx += 3; if (isSet(5)) idx += 2;
+            if (isSet(6) && val.byteLength >= idx + 2) {
+                els.power.innerText = val.getInt16(idx, true);
             }
         }
 
-        // --- Control Logic ---
         async function requestControl() {
             if (!controlChar) return;
-            const payload = new Uint8Array([OP_REQUEST_CONTROL]);
-            await controlChar.writeValue(payload);
+            await controlChar.writeValue(new Uint8Array([OP_REQUEST_CONTROL]));
         }
-
         async function sendSimulationUpdate() {
             if (!controlChar) return;
+            const b = new ArrayBuffer(7); const v = new DataView(b);
+            v.setUint8(0, OP_SET_SIMULATION_PARAMS);
+            v.setInt16(1, Math.round(dynamicState.currentSimWind * 1000), true);
+            v.setInt16(3, Math.round(simParams.grade * 100), true);
+            v.setUint8(5, parseInt(simParams.crr)); v.setUint8(6, parseInt(simParams.cw));
+            try { await controlChar.writeValue(b); console.log('update') } catch(e){ log("Sim Write Error: " + e.message, true);}
+        }
+        async function sendTargetPowerUpdate(watts) {
+            if (!controlChar) return;
+            watts = Math.max(0, Math.min(2000, watts));
+            const b = new ArrayBuffer(3); const v = new DataView(b);
+            v.setUint8(0, OP_SET_TARGET_POWER); v.setUint16(1, watts, true);
+            try { await controlChar.writeValue(b); targetErgWatts = watts; } catch(e){ log("ERG Write Error: " + e.message, true);}
+        }
+        function checkConn() { return bluetoothDevice && bluetoothDevice.gatt.connected; }
 
-            // 7 Bytes: [OpCode, Wind(2), Grade(2), Crr(1), Cw(1)]
-            const buffer = new ArrayBuffer(7);
-            const view = new DataView(buffer);
+        // --- Mode Switching ---
+        function setMode(mode) {
+            // Reset active states
+            els.btnModeGrade.classList.remove('active');
+            els.btnModeErg.classList.remove('active');
+            els.btnModeWorkout.classList.remove('active');
+            els.secGrade.classList.add('inactive');
+            els.secErg.classList.add('inactive');
+            els.secWorkout.classList.add('inactive');
 
-            // 1. OpCode (0x11)
-            view.setUint8(0, OP_SET_SIMULATION_PARAMS);
-
-            // 2. Wind Speed (m/s * 1000)
-            view.setInt16(1, Math.round(simParams.wind * 1000), true);
-
-            // 3. Grade (% * 100)
-            view.setInt16(3, Math.round(simParams.grade * 100), true);
-
-            // 4. Crr (Coefficient * 10000)
-            view.setUint8(5, parseInt(simParams.crr));
-
-            // 5. Cw (kg/m * 100)
-            view.setUint8(6, parseInt(simParams.cw));
-
-            try {
-                await controlChar.writeValue(buffer);
-                log(`Sent: Grade:${simParams.grade}%, Wind:${simParams.wind}, Crr:${simParams.crr}, Cw:${simParams.cw}`);
-            } catch (e) {
-                log("Simulation Write failed: " + e.message, true);
+            if (mode === 'grade') {
+                els.btnModeGrade.classList.add('active');
+                els.secGrade.classList.remove('inactive');
+                if (checkConn()) debouncedSendSim();
+            } else if (mode === 'erg') {
+                els.btnModeErg.classList.add('active');
+                els.secErg.classList.remove('inactive');
+                if (checkConn()) debouncedSendErg(targetErgWatts);
+            } else if (mode === 'workout') {
+                els.btnModeWorkout.classList.add('active');
+                els.secWorkout.classList.remove('inactive');
             }
+        }
+        els.btnModeGrade.onclick = () => setMode('grade');
+        els.btnModeErg.onclick = () => setMode('erg');
+        els.btnModeWorkout.onclick = () => setMode('workout');
+
+        // --- Dynamic Env Logic ---
+        function startDynamicLoop() {
+            if (dynamicInterval) clearInterval(dynamicInterval);
+            dynamicInterval = setInterval(() => {
+                if (!els.btnModeGrade.classList.contains('active')) return;
+                let update = false;
+                // Wind
+                if (dynamicState.gustsEnabled) {
+                    if (Math.random() > 0.7) {
+                        let t = simParams.wind + (Math.random()*10 - 5);
+                        if (t > dynamicState.windMax) t = dynamicState.windMax;
+                        if (t < dynamicState.windMin) t = dynamicState.windMin;
+                        dynamicState.gustTarget = t;
+                        refreshGustLabel();
+                        if (els.btnToggleGusts) {
+                            els.btnToggleGusts.classList.add('gusting');
+                            setTimeout(() => {
+                                els.btnToggleGusts.classList.remove('gusting');
+                            }, 500);
+                        }
+                    }
+                    dynamicState.currentSimWind += (dynamicState.gustTarget - dynamicState.currentSimWind) * 0.3;
+                    update = true;
+                } else if (Math.abs(dynamicState.currentSimWind - simParams.wind) > 0.1) {
+                    dynamicState.currentSimWind += (simParams.wind - dynamicState.currentSimWind) * 0.2;
+                    update = true;
+                }
+                // Hills
+                if (dynamicState.hillsEnabled) {
+                    simParams.grade += (Math.random()-0.5)*2;
+                    if (simParams.grade > dynamicState.gradeMax) simParams.grade = dynamicState.gradeMax;
+                    if (simParams.grade < dynamicState.gradeMin) simParams.grade = dynamicState.gradeMin;
+                    els.slope.innerText = (simParams.grade>0?"+":"") + simParams.grade.toFixed(1);
+                    update = true;
+                }
+                if (update) {
+                    sendSimulationUpdate();
+                    refreshGustLabel();
+                }
+            }, dynamicState.updateRateMs);
         }
 
         async function sendCircumferenceUpdate() {
             if (!controlChar) return;
 
             const mm = simParams.circumference;
-            const encoded = mm * 10; // because FTMS is in 0.1 mm units
+            const encoded = Math.round(mm * 10);
 
             const buffer = new ArrayBuffer(3);
             const view = new DataView(buffer);
@@ -766,184 +892,378 @@
             }
         }
 
-        // --- ERG Mode (Target Power) ---
-        async function sendTargetPowerUpdate(watts) {
-            if (!controlChar) return;
-
-            // Safety clamp (0 to 2000W)
-            watts = Math.max(0, Math.min(2000, watts));
-
-            // 3 Bytes: [OpCode, Power (2)]
-            const buffer = new ArrayBuffer(3);
-            const view = new DataView(buffer);
-
-            view.setUint8(0, OP_SET_TARGET_POWER);
-            view.setUint16(1, watts, true); // Watts (UINT16, LSB first)
-
-            try {
-                await controlChar.writeValue(buffer);
-                log(`Trainer Mode: ERG. Target: ${watts}W (OpCode 0x05)`);
-                // On success, commit the new power value to our global state.
-                targetErgWatts = watts;
-            } catch (e) {
-                log("Target Power Write failed: " + e.message, true);
-                // On failure, revert the UI to the last known good value.
-                els.ergDisplay.innerText = targetErgWatts;
-            }
-        }
-
-        function checkConnected() {
-            if (!bluetoothDevice || !bluetoothDevice.gatt.connected) {
-                log("Connect trainer first.", true);
-                return false;
-            }
-            return true;
-        }
-
-        // --- UI Event Handlers ---
-
-        // Mode Switching Logic
-        function setMode(mode) {
-            if (mode === 'grade') {
-                els.btnModeGrade.classList.add('active');
-                els.btnModeErg.classList.remove('active');
-
-                els.sectionGrade.classList.remove('inactive');
-                els.sectionErg.classList.add('inactive');
-
-                if (checkConnected()) {
-                    debouncedSendSimulationUpdate(); // Force switch to Sim Mode
-                }
-            } else {
-                els.btnModeGrade.classList.remove('active');
-                els.btnModeErg.classList.add('active');
-
-                els.sectionGrade.classList.add('inactive');
-                els.sectionErg.classList.remove('inactive');
-
-                if (checkConnected()) {
-                    debouncedSendTargetPowerUpdate(targetErgWatts); // Force switch to ERG Mode
-                }
-            }
-        }
-
-        els.btnModeGrade.addEventListener('click', () => setMode('grade'));
-        els.btnModeErg.addEventListener('click', () => setMode('erg'));
-
-        // Grade Controls
-        function updateGrade(newGrade) {
-            if (!checkConnected()) return;
-            // Clamp between -15% and +20% (Hardware limits usually around there)
-            if (newGrade > 20) newGrade = 20;
-            if (newGrade < -15) newGrade = -15;
-
-            simParams.grade = parseFloat(newGrade.toFixed(1));
-
-            // UI Update
-            els.slope.innerText = (simParams.grade > 0 ? "+" : "") + simParams.grade.toFixed(1);
-
-            setMode('grade');
-        }
-
-        function updateErg(change) {
-            if (!checkConnected()) return;
-            // Read from the UI, not the state variable, for immediate feedback on rapid clicks
-            let currentWatts = parseInt(els.ergDisplay.innerText) || targetErgWatts;
-            const newWatts = currentWatts + change;
-            els.ergDisplay.innerText = newWatts; // Optimistically update UI immediately
-            debouncedSendTargetPowerUpdate(newWatts);
-        }
-
-        els.btnInc.addEventListener('click', () => updateGrade(simParams.grade + 0.5));
-        els.btnDec.addEventListener('click', () => updateGrade(simParams.grade - 0.5));
-
-        // ERG Controls
-        els.btnErgUp.addEventListener('click', () => updateErg(5));
-        els.btnErgDown.addEventListener('click', () => updateErg(-5));
-
-        // Circumference Control
-        els.optCircumference.addEventListener('change', (e) => {
-            simParams.circumference = parseInt(e.target.value);
-            sendCircumferenceUpdate();
+        // --- ZWO Workout Logic ---
+        els.fileZwo.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (evt) => parseZwo(evt.target.result);
+            reader.readAsText(file);
         });
 
-        // Advanced Controls
-        els.optCrr.addEventListener('change', (e) => {
-            simParams.crr = e.target.value;
-            if (els.btnModeGrade.classList.contains('active')) debouncedSendSimulationUpdate();
-        });
-
-        els.optCw.addEventListener('change', (e) => {
-            simParams.cw = e.target.value;
-            if (els.btnModeGrade.classList.contains('active')) debouncedSendSimulationUpdate();
-        });
-
-        els.rngWind.addEventListener('input', (e) => {
-            simParams.wind = parseFloat(e.target.value);
-            els.lblWind.innerText = (simParams.wind > 0 ? "+" : "") + simParams.wind + " m/s";
-            if (els.btnModeGrade.classList.contains('active')) debouncedSendSimulationUpdate();
-        });
-
-        // Re-attach the connect button listener
-        els.connectBtn.addEventListener('click', onConnectClick);
-
-        // --- Keyboard Shortcuts ---
-        document.addEventListener('keydown', (e) => {
-            // Don't interfere if user is typing in an input
-            if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'SELECT') {
+        els.inpFtp.addEventListener('change', () => {
+            const newFtp = parseInt(els.inpFtp.value);
+            if (isNaN(newFtp) || newFtp <= 0) {
+                els.inpFtp.value = workoutState.ftp; // revert on invalid input
                 return;
             }
+            workoutState.ftp = newFtp;
+            log(`FTP updated to ${newFtp}W.`);
+            // If a workout is loaded, recalculate display and update power target
+            if (workoutState.segments.length > 0) {
+                updateWorkoutDisplay();
+            }
+        });
 
-            const isGradeMode = els.btnModeGrade.classList.contains('active');
+        function parseZwo(xmlText) {
+            try {
+                const parser = new DOMParser();
+                const xml = parser.parseFromString(xmlText, "text/xml");
+                const tags = xml.querySelector("workout").children;
+                let segments = [];
+
+                for (let node of tags) {
+                    const type = node.tagName;
+                    const duration = parseInt(node.getAttribute("Duration") || 0);
+
+                    if (type === "SteadyState") {
+                        segments.push({ type: 'steady', duration, pStart: parseFloat(node.getAttribute("Power")), pEnd: parseFloat(node.getAttribute("Power")) });
+                    } else if (type === "Warmup" || type === "Cooldown" || type === "Ramp") {
+                        segments.push({ type: 'ramp', duration, pStart: parseFloat(node.getAttribute("PowerLow")), pEnd: parseFloat(node.getAttribute("PowerHigh")) });
+                    } else if (type === "IntervalsT") {
+                        const repeat = parseInt(node.getAttribute("Repeat"));
+                        const onDur = parseInt(node.getAttribute("OnDuration"));
+                        const offDur = parseInt(node.getAttribute("OffDuration"));
+                        const onPow = parseFloat(node.getAttribute("OnPower"));
+                        const offPow = parseFloat(node.getAttribute("OffPower"));
+                        for (let i = 0; i < repeat; i++) {
+                            segments.push({ type: 'steady', duration: onDur, pStart: onPow, pEnd: onPow, text: "Interval" });
+                            segments.push({ type: 'steady', duration: offDur, pStart: offPow, pEnd: offPow, text: "Rest" });
+                        }
+                    } else if (type === "FreeRide") {
+                         segments.push({ type: 'freeride', duration, text: "Freeride" });
+                    }
+                }
+                workoutState.segments = segments;
+                workoutState.ftp = parseInt(els.inpFtp.value) || 200;
+                resetWorkoutUI();
+                drawWorkoutGraph();
+                els.workoutUi.style.opacity = "1";
+                els.workoutUi.style.pointerEvents = "auto";
+                log(`Loaded workout: ${segments.length} segments.`);
+            } catch(e) { log("Error parsing ZWO: " + e.message, true); }
+        }
+
+        function drawWorkoutGraph() {
+            // Basic drawing logic
+            const w = els.canvas.width;
+            const h = els.canvas.height;
+            ctx.clearRect(0,0,w,h);
+
+            // Calculate total duration to scale width
+            let totalDur = 0;
+            workoutState.segments.forEach(s => totalDur += s.duration);
+
+            let x = 0;
+            workoutState.segments.forEach((seg, i) => {
+                const width = (seg.duration / totalDur) * w;
+                // Height based on Power (Max 150% FTP for graph scaling)
+                let pAvg = 0;
+                if(seg.type === 'freeride') pAvg = 0.5; // Draw Freeride as gray mid-bar
+                else pAvg = (seg.pStart + seg.pEnd) / 2;
+
+                const barH = Math.min(1.0, pAvg / 1.5) * h;
+                const y = h - barH;
+
+                if (i === workoutState.currentSegIndex) {
+                    ctx.fillStyle = '#ff5722'; // Current segment highlight
+                } else if (seg.type === 'freeride') {
+                    ctx.fillStyle = '#555';
+                } else {
+                    ctx.fillStyle = getZoneColor(pAvg);
+                }
+                ctx.fillRect(x, y, width, barH);
+
+                // Outline
+                ctx.strokeStyle = '#222';
+                ctx.strokeRect(x,y,width,barH);
+
+                x += width;
+            });
+        }
+
+        function resetWorkoutUI() {
+            clearInterval(workoutState.timerId);
+            workoutState.running = false;
+            workoutState.currentSegIndex = 0;
+            workoutState.intensity = 1.0;
+            els.valWIntensity.innerText = '100%';
+            if (workoutState.segments.length > 0) {
+                workoutState.segTimeLeft = workoutState.segments[0].duration;
+                updateWorkoutDisplay();
+            }
+        }
+
+        function updateWorkoutDisplay() {
+            const seg = workoutState.segments[workoutState.currentSegIndex];
+            if (!seg) return;
+
+            els.valSegCount.innerText = `${workoutState.currentSegIndex + 1}/${workoutState.segments.length}`;
+            els.valSegTime.innerText = formatTime(workoutState.segTimeLeft);
+            els.lblSegType.innerText = seg.text || (seg.type === 'ramp' ? "Ramp" : seg.type === 'freeride' ? "Freeride" : "Steady Effort");
+
+            // Redraw graph active highlight
+            drawWorkoutGraph();
+
+            if (seg.type === 'freeride') {
+                // FREERIDE MODE
+                els.freerideUi.style.display = 'block';
+                els.valWorkoutTarget.innerText = "";
+
+                // If running, ensure we are in SIM mode
+                if (workoutState.running && checkConn()) {
+                     debouncedSendSim();
+                }
+            } else {
+                // ERG MODE
+                els.freerideUi.style.display = 'none';
+
+                const total = seg.duration;
+                const elapsed = total - workoutState.segTimeLeft;
+
+                let targetP = 0;
+                if (seg.type === 'ramp') {
+                    const progress = elapsed / total;
+                    targetP = seg.pStart + (seg.pEnd - seg.pStart) * progress;
+                } else {
+                    targetP = seg.pStart;
+                }
+
+                const watts = Math.round(targetP * workoutState.ftp * workoutState.intensity);
+                els.valWorkoutTarget.innerText = watts + 'w';
+
+                if (workoutState.running && checkConn()) {
+                     debouncedSendErg(watts);
+                }
+            }
+        }
+
+        els.btnWStart.onclick = () => {
+            if (workoutState.segments.length === 0) return;
+            workoutState.running = true;
+            workoutState.ftp = parseInt(els.inpFtp.value);
+
+            // Initial Mode Set
+            updateWorkoutDisplay();
+
+            if (workoutState.timerId) clearInterval(workoutState.timerId);
+            workoutState.timerId = setInterval(() => {
+                if (!workoutState.running) return;
+
+                workoutState.segTimeLeft--;
+                updateWorkoutDisplay();
+
+                if (workoutState.segTimeLeft <= 0) {
+                    workoutState.currentSegIndex++;
+                    if (workoutState.currentSegIndex >= workoutState.segments.length) {
+                        // End
+                        workoutState.running = false;
+                        clearInterval(workoutState.timerId);
+                        els.lblSegType.innerText = "WORKOUT COMPLETE";
+                        // FREERIDE MODE
+                        els.freerideUi.style.display = 'block';
+                        els.valWorkoutTarget.innerText = "--";
+                        if (checkConn()) sendSimulationUpdate();
+                    } else {
+                        workoutState.segTimeLeft = workoutState.segments[workoutState.currentSegIndex].duration;
+                        updateWorkoutDisplay();
+                    }
+                }
+            }, 1000);
+        };
+
+        els.btnWPause.onclick = () => { workoutState.running = false; };
+        els.btnWStop.onclick = () => { resetWorkoutUI(); };
+
+        function adjustWorkoutIntensity(delta) {
+            if (workoutState.segments.length === 0) return;
+            // Cap at 200% and 25%
+            workoutState.intensity = Math.max(0.25, Math.min(2.0, workoutState.intensity + delta));
+            els.valWIntensity.innerText = `${Math.round(workoutState.intensity * 100)}%`;
+
+            // If a workout is running, update the target power immediately
+            updateWorkoutDisplay();
+            // if (workoutState.running) {
+            // }
+        }
+        els.btnWIntUp.onclick = () => adjustWorkoutIntensity(0.01);
+        els.btnWIntDown.onclick = () => adjustWorkoutIntensity(-0.01);
+
+        els.btnWNext.onclick = () => {
+            if (!workoutState.segments.length || workoutState.currentSegIndex >= workoutState.segments.length - 1) return;
+            workoutState.currentSegIndex++;
+            workoutState.segTimeLeft = workoutState.segments[workoutState.currentSegIndex].duration;
+            updateWorkoutDisplay();
+        };
+
+        els.btnWPrev.onclick = () => {
+            if (!workoutState.segments.length) return;
+            const seg = workoutState.segments[workoutState.currentSegIndex];
+            if (workoutState.segTimeLeft < seg.duration) { // If partway through segment
+                workoutState.segTimeLeft = seg.duration; // Reset current segment
+            } else { // Else, we're at the start, so go to previous
+                workoutState.currentSegIndex = Math.max(0, workoutState.currentSegIndex - 1);
+                workoutState.segTimeLeft = workoutState.segments[workoutState.currentSegIndex].duration;
+            }
+            updateWorkoutDisplay();
+        };
+
+        // Freeride Controls
+        els.btnFrInc.onclick = () => {
+            simParams.grade = Math.min(20, simParams.grade + 0.5);
+            els.valFrGrade.innerText = (simParams.grade>0?"+":"")+simParams.grade.toFixed(1);
+            if(checkConn()) debouncedSendSim();
+        };
+        els.btnFrDec.onclick = () => {
+            simParams.grade = Math.max(-15, simParams.grade - 0.5);
+            els.valFrGrade.innerText = (simParams.grade>0?"+":"")+simParams.grade.toFixed(1);
+            if(checkConn()) debouncedSendSim();
+        };
+
+        // --- Other Listeners & Controls ---
+        function adjustGrade(gradeDelta) {
+            // if (!checkConn()) return;
+            let newGrade = simParams.grade + gradeDelta;
+            newGrade = Math.max(-15, Math.min(20, newGrade)); // Clamp
+            simParams.grade = parseFloat(newGrade.toFixed(1));
+
+            // Update both UI elements (main view and freeride view)
+            const gradeText = (simParams.grade > 0 ? "+" : "") + simParams.grade.toFixed(1);
+            els.slope.innerText = gradeText;
+            els.valFrGrade.innerText = gradeText;
+
+            debouncedSendSim();
+        }
+
+        // Freeride buttons
+        els.btnFrInc.onclick = () => adjustGrade(0.5);
+        els.btnFrDec.onclick = () => adjustGrade(-0.5);
+
+        // Main grade buttons
+        els.btnInc.onclick = () => adjustGrade(0.5);
+        els.btnDec.onclick = () => adjustGrade(-0.5);
+
+        // ERG buttons
+        function adjErg(d) { let v=parseInt(els.ergDisplay.innerText)+d; els.ergDisplay.innerText=v; debouncedSendErg(v); }
+        els.btnErgUp.onclick = () => adjErg(5);
+        els.btnErgDown.onclick = () => adjErg(-5);
+
+        // Dynamic Env Toggles & Advanced Settings
+        els.btnToggleGusts.onclick = () => { dynamicState.gustsEnabled=!dynamicState.gustsEnabled; els.btnToggleGusts.classList.toggle('active'); refreshGustLabel(); };
+        els.btnToggleHills.onclick = () => { dynamicState.hillsEnabled=!dynamicState.hillsEnabled; els.btnToggleHills.classList.toggle('active'); };
+
+        els.optCircumference.onchange = () => { simParams.circumference = parseInt(els.optCircumference.value); if(checkConn()) sendCircumferenceUpdate(); };
+        els.optCrr.onchange = () => { simParams.crr = parseInt(els.optCrr.value); if(checkConn()) debouncedSendSim(); };
+        els.optCw.onchange = () => { simParams.cw = parseInt(els.optCw.value); if(checkConn()) debouncedSendSim(); };
+
+        els.rngWind.oninput = (e) => {
+            const windKph = parseFloat(e.target.value);
+            simParams.wind = windKph / KPH_PER_MS;
+            els.lblWind.innerText = windKph + " km/h";
+            dynamicState.currentSimWind = simParams.wind;
+            if(els.btnModeGrade.classList.contains('active')) debouncedSendSim();
+            refreshGustLabel();
+        };
+
+        els.optUpdateRate.onchange = () => { dynamicState.updateRateMs = parseFloat(els.optUpdateRate.value) * 1000; startDynamicLoop(); };
+        els.optMinGrade.onchange = () => { dynamicState.gradeMin = parseFloat(els.optMinGrade.value); };
+        els.optMaxGrade.onchange = () => { dynamicState.gradeMax = parseFloat(els.optMaxGrade.value); };
+        els.optMinWind.onchange = () => { dynamicState.windMin = parseFloat(els.optMinWind.value) / KPH_PER_MS; };
+        els.optMaxWind.onchange = () => { dynamicState.windMax = parseFloat(els.optMaxWind.value) / KPH_PER_MS; };
+
+        // --- Keyboard Shortcuts ---
+        window.addEventListener('keydown', (e) => {
+            const active = document.activeElement;
+            if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable)) return;
+
             let handled = false;
+            const key = e.key.toLowerCase();
 
-            switch (e.key) {
-                case 'Add':
-                case '+':
-                    isGradeMode ? updateGrade(simParams.grade + 0.1) : updateErg(5);
-                    handled = true;
-                    break;
-                case 'Subtract':
-                case '-':
-                    isGradeMode ? updateGrade(simParams.grade - 0.1) : updateErg(-5);
-                    handled = true;
-                    break;
-                case 'ArrowUp':
-                    isGradeMode ? updateGrade(simParams.grade + 0.5) : updateErg(10);
-                    handled = true;
-                    break;
-                case 'ArrowDown':
-                    isGradeMode ? updateGrade(simParams.grade - 0.5) : updateErg(-10);
-                    handled = true;
-                    break;
-                case 'e':
-                case 'E':
-                    setMode('erg');
-                    handled = true;
-                    break;
-                case 'g':
-                case 'G':
-                    setMode('grade');
-                    handled = true;
-                    break;
+            // Mode-specific shortcuts
+            if (els.btnModeGrade.classList.contains('active')) {
+                switch (key) {
+                    case '+': case '=':
+                        adjustGrade(0.1); handled = true; break;
+                    case '-':
+                        adjustGrade(-0.1); handled = true; break;
+                    case 'arrowup':
+                        adjustGrade(0.5); handled = true; break;
+                    case 'arrowdown':
+                        adjustGrade(-0.5); handled = true; break;
+                }
+            } else if (els.btnModeErg.classList.contains('active')) {
+                switch (key) {
+                    case '+': case '=':
+                        adjErg(5); handled = true; break;
+                    case '-':
+                        adjErg(-5); handled = true; break;
+                    case 'arrowup':
+                        adjErg(10); handled = true; break;
+                    case 'arrowdown':
+                        adjErg(-10); handled = true; break;
+                }
+            } else if (els.btnModeWorkout.classList.contains('active')) {
+                const seg = workoutState.segments[workoutState.currentSegIndex];
+                const isFreeride = seg && seg.type === 'freeride';
+
+                if (isFreeride) {
+                    // Use grade controls during freeride segments
+                    switch (key) {
+                        case '+': case '=':
+                            adjustGrade(0.1); handled = true; break;
+                        case '-':
+                            adjustGrade(-0.1); handled = true; break;
+                        case 'arrowup':
+                            adjustGrade(0.5); handled = true; break;
+                        case 'arrowdown':
+                            adjustGrade(-0.5); handled = true; break;
+                        case 'arrowleft':
+                            els.btnWPrev.click(); handled = true; break;
+                        case 'arrowright':
+                            els.btnWNext.click(); handled = true; break;
+                    }
+                } else {
+                    // Use normal workout controls for ERG segments
+                    switch (key) {
+                        case '+': case '=':
+                            adjustWorkoutIntensity(0.01); handled = true; break;
+                        case '-':
+                            adjustWorkoutIntensity(-0.01); handled = true; break;
+                        case 'arrowleft':
+                            els.btnWPrev.click(); handled = true; break;
+                        case 'arrowright':
+                            els.btnWNext.click(); handled = true; break;
+                    }
+                }
+            }
+
+            // Global shortcuts for mode switching
+            switch (key) {
+                case 'g': setMode('grade'); handled = true; break;
+                case 'e': setMode('erg'); handled = true; break;
+                case 'w': setMode('workout'); handled = true; break;
             }
 
             if (handled) {
-                e.preventDefault(); // Prevent page scrolling with arrow keys
+                e.preventDefault();
             }
         });
-
-        // --- Init ---
-        // Initialize circumference dropdown value
-        els.optCircumference.value = simParams.circumference;
-        els.ergDisplay.innerText = targetErgWatts;
-
         if (!navigator.bluetooth) {
             els.errorLog.style.display = 'block';
             els.errorLog.innerHTML = "Web Bluetooth is not supported in this browser. Use Chrome/Edge/Bluefy.";
             els.connectBtn.disabled = true;
         }
-
+        els.connectBtn.onclick = onConnectClick;
     </script>
 </body>
 </html>

@@ -13,16 +13,28 @@ A lightweight, modern web application to control any FTMS-compatible smart train
 
   * **Live Dashboard:** Real-time display of **Power (Watts)**, **Cadence (RPM)**, and **Speed (KPH)**.
   * **Manual Grade Control:** Adjust slope/incline on the fly with large `+` / `-` buttons to simulate hills.
-  * **ERG Mode:** Set a target power (Watts) and the trainer will hold that power
+  * **ERG Mode:** Set a target power (Watts) and the trainer will hold that power.
+  * **Workout Player (.zwo):** Load and execute structured workouts from standard Zwift workout files.
+      * Real-time display of the current and upcoming segments.
+      * Power zones are color-coded for at-a-glance intensity checks.
+      * Full control: Start/Pause, Skip Forward/Back, and adjust intensity % on the fly.
+      * Supports both ERG-based intervals and "Freeride" (slope mode) segments.
   * **Keyboard Shortcuts:** Control the trainer without touching your mouse.
-      * **`+` / `-`**: Adjust grade by `±0.1%` or ERG power by `±5W`.
-      * **Arrow Keys `↑` / `↓`**: Adjust grade by `±0.5%` or ERG power by `±10W`.
-      * **`G` / `E`**: Switch between **G**rade and **E**RG modes.
+      * **Mode Switching:** `G` (Grade), `E` (ERG), `W` (Workout).
+      * **Grade/ERG Adjust:**
+          * **`+` / `-`**: Adjust grade by `±0.1%` or ERG power by `±5W`.
+          * **Arrow Keys `↑` / `↓`**: Adjust grade by `±0.5%` or ERG power by `±10W`.
+      * **Workout Control:**
+          * **Arrow Keys `←` / `→`**: Skip to Previous/Next segment.
+          * **`+` / `-`**: Adjust workout intensity by `±1%`.
   * **Wheel Circumference Setting:** Select wheel circumference (in millimeters) to improve speed calculations and compatibility with trainers that report/expect wheel size.
   * **Advanced Physics Engine:** Customize the simulation parameters to match your riding style:
       * **Rolling Resistance (Crr):** Simulate different road surfaces (Track, Asphalt, Gravel).
       * **Aerodynamics (Cw):** Adjust for your riding position (TT, Hoods, Upright/MTB).
       * **Wind Simulation:** Add headwind or tailwind to change the resistance curve.
+  * **Dynamic Environment Simulation:** Add variability to your free rides.
+      * **Wind Gusts:** Simulates random changes in wind speed for a more realistic feel.
+      * **Rolling Hills:** Automatically varies the grade to simulate undulating terrain.
   * **Zero Dependencies:** The entire app is contained in a **single HTML file**.
   * **Privacy Focused:** 100% runs in your browser. No data is sent to the cloud.
 
