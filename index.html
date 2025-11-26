@@ -683,16 +683,17 @@
             if (!saved) return;
             try {
                 const s = JSON.parse(saved);
-                workoutState.ftp = s.ftp || workoutState.ftp;
-                simParams.circumference = s.circumference || simParams.circumference;
-                simParams.crr = s.crr || simParams.crr;
-                simParams.cw = s.cw || simParams.cw;
-                simParams.wind = s.wind || 0;
-                dynamicState.updateRateMs = s.updateRateMs || dynamicState.updateRateMs;
-                dynamicState.gradeMin = s.gradeMin || dynamicState.gradeMin;
-                dynamicState.gradeMax = s.gradeMax || dynamicState.gradeMax;
-                dynamicState.windMin = s.windMin || dynamicState.windMin;
-                dynamicState.windMax = s.windMax || dynamicState.windMax;
+                // Use nullish coalescing (??) to correctly handle saved settings that are 0
+                workoutState.ftp = s.ftp ?? workoutState.ftp;
+                simParams.circumference = s.circumference ?? simParams.circumference;
+                simParams.crr = s.crr ?? simParams.crr;
+                simParams.cw = s.cw ?? simParams.cw;
+                simParams.wind = s.wind ?? 0;
+                dynamicState.updateRateMs = s.updateRateMs ?? dynamicState.updateRateMs;
+                dynamicState.gradeMin = s.gradeMin ?? dynamicState.gradeMin;
+                dynamicState.gradeMax = s.gradeMax ?? dynamicState.gradeMax;
+                dynamicState.windMin = s.windMin ?? dynamicState.windMin;
+                dynamicState.windMax = s.windMax ?? dynamicState.windMax;
 
                 // Update UI to reflect loaded settings
                 els.inpFtp.value = workoutState.ftp;
