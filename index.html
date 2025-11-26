@@ -661,6 +661,59 @@
         }
         const debouncedSendSim = debounce(sendSimulationUpdate, 250);
         const debouncedSendErg = debounce(sendTargetPowerUpdate, 250);
+
+        function saveSettings() {
+            const settings = {
+                ftp: workoutState.ftp,
+                circumference: simParams.circumference,
+                crr: simParams.crr,
+                cw: simParams.cw,
+                wind: simParams.wind,
+                updateRateMs: dynamicState.updateRateMs,
+                gradeMin: dynamicState.gradeMin,
+                gradeMax: dynamicState.gradeMax,
+                windMin: dynamicState.windMin,
+                windMax: dynamicState.windMax
+            };
+            localStorage.setItem('trainerControlSettings', JSON.stringify(settings));
+        }
+
+        function loadSettings() {
+            const saved = localStorage.getItem('trainerControlSettings');
+            if (!saved) return;
+            try {
+                const s = JSON.parse(saved);
+                workoutState.ftp = s.ftp || workoutState.ftp;
+                simParams.circumference = s.circumference || simParams.circumference;
+                simParams.crr = s.crr || simParams.crr;
+                simParams.cw = s.cw || simParams.cw;
+                simParams.wind = s.wind || 0;
+                dynamicState.updateRateMs = s.updateRateMs || dynamicState.updateRateMs;
+                dynamicState.gradeMin = s.gradeMin || dynamicState.gradeMin;
+                dynamicState.gradeMax = s.gradeMax || dynamicState.gradeMax;
+                dynamicState.windMin = s.windMin || dynamicState.windMin;
+                dynamicState.windMax = s.windMax || dynamicState.windMax;
+
+                // Update UI to reflect loaded settings
+                els.inpFtp.value = workoutState.ftp;
+                els.optCircumference.value = simParams.circumference;
+                els.optCrr.value = simParams.crr;
+                els.optCw.value = simParams.cw;
+                const windKph = simParams.wind * KPH_PER_MS;
+                els.rngWind.value = windKph;
+                els.lblWind.innerText = Math.round(windKph) + " km/h";
+                els.optUpdateRate.value = dynamicState.updateRateMs / 1000;
+                els.optMinGrade.value = dynamicState.gradeMin;
+                els.optMaxGrade.value = dynamicState.gradeMax;
+                els.optMinWind.value = Math.round(dynamicState.windMin * KPH_PER_MS);
+                els.optMaxWind.value = Math.round(dynamicState.windMax * KPH_PER_MS);
+                log("Loaded saved settings.");
+            } catch (e) {
+                log("Could not load settings: " + e.message, true);
+                localStorage.removeItem('trainerControlSettings');
+            }
+        }
+
         function formatTime(sec) {
             const m = Math.floor(sec / 60);
             const s = sec % 60;
@@ -909,6 +962,7 @@
             }
             workoutState.ftp = newFtp;
             log(`FTP updated to ${newFtp}W.`);
+            saveSettings();
             // If a workout is loaded, recalculate display and update power target
             if (workoutState.segments.length > 0) {
                 updateWorkoutDisplay();
@@ -1162,9 +1216,9 @@
         els.btnToggleGusts.onclick = () => { dynamicState.gustsEnabled=!dynamicState.gustsEnabled; els.btnToggleGusts.classList.toggle('active'); refreshGustLabel(); };
         els.btnToggleHills.onclick = () => { dynamicState.hillsEnabled=!dynamicState.hillsEnabled; els.btnToggleHills.classList.toggle('active'); };
 
-        els.optCircumference.onchange = () => { simParams.circumference = parseInt(els.optCircumference.value); if(checkConn()) sendCircumferenceUpdate(); };
-        els.optCrr.onchange = () => { simParams.crr = parseInt(els.optCrr.value); if(checkConn()) debouncedSendSim(); };
-        els.optCw.onchange = () => { simParams.cw = parseInt(els.optCw.value); if(checkConn()) debouncedSendSim(); };
+        els.optCircumference.onchange = () => { simParams.circumference = parseInt(els.optCircumference.value); saveSettings(); if(checkConn()) sendCircumferenceUpdate(); };
+        els.optCrr.onchange = () => { simParams.crr = parseInt(els.optCrr.value); saveSettings(); if(checkConn()) debouncedSendSim(); };
+        els.optCw.onchange = () => { simParams.cw = parseInt(els.optCw.value); saveSettings(); if(checkConn()) debouncedSendSim(); };
 
         els.rngWind.oninput = (e) => {
             const windKph = parseFloat(e.target.value);
@@ -1174,12 +1228,13 @@
             if(els.btnModeGrade.classList.contains('active')) debouncedSendSim();
             refreshGustLabel();
         };
+        els.rngWind.onchange = () => saveSettings(); // Save wind setting on release
 
-        els.optUpdateRate.onchange = () => { dynamicState.updateRateMs = parseFloat(els.optUpdateRate.value) * 1000; startDynamicLoop(); };
-        els.optMinGrade.onchange = () => { dynamicState.gradeMin = parseFloat(els.optMinGrade.value); };
-        els.optMaxGrade.onchange = () => { dynamicState.gradeMax = parseFloat(els.optMaxGrade.value); };
-        els.optMinWind.onchange = () => { dynamicState.windMin = parseFloat(els.optMinWind.value) / KPH_PER_MS; };
-        els.optMaxWind.onchange = () => { dynamicState.windMax = parseFloat(els.optMaxWind.value) / KPH_PER_MS; };
+        els.optUpdateRate.onchange = () => { dynamicState.updateRateMs = parseFloat(els.optUpdateRate.value) * 1000; saveSettings(); startDynamicLoop(); };
+        els.optMinGrade.onchange = () => { dynamicState.gradeMin = parseFloat(els.optMinGrade.value); saveSettings(); };
+        els.optMaxGrade.onchange = () => { dynamicState.gradeMax = parseFloat(els.optMaxGrade.value); saveSettings(); };
+        els.optMinWind.onchange = () => { dynamicState.windMin = parseFloat(els.optMinWind.value) / KPH_PER_MS; saveSettings(); };
+        els.optMaxWind.onchange = () => { dynamicState.windMax = parseFloat(els.optMaxWind.value) / KPH_PER_MS; saveSettings(); };
 
         // --- Keyboard Shortcuts ---
         window.addEventListener('keydown', (e) => {
@@ -1258,6 +1313,9 @@
                 e.preventDefault();
             }
         });
+
+        // --- Init ---
+        loadSettings();
         if (!navigator.bluetooth) {
             els.errorLog.style.display = 'block';
             els.errorLog.innerHTML = "Web Bluetooth is not supported in this browser. Use Chrome/Edge/Bluefy.";
